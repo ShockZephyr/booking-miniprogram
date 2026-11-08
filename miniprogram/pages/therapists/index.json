@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "场馆芳疗师",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "therapist-card": "/components/therapist-card/index"
+  }
+}

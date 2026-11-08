@@ -1,0 +1,43 @@
+<view wx:if="{{visible}}" class="drawer-wrap">
+  <view class="mask" bindtap="close" aria-hidden="true"></view>
+  <view class="drawer" aria-role="dialog" aria-modal="true" aria-label="选择日期">
+    <view class="drawer-header">
+      <button class="back-button" bindtap="close" aria-label="返回">
+        <image class="back-icon" src="/assets/icons/chevron-left.png" mode="aspectFit" aria-hidden="true"></image>
+      </button>
+      <text class="drawer-title">日历</text>
+      <view class="header-spacer"></view>
+    </view>
+    <view class="week-row">
+      <text>日</text><text>一</text><text>二</text><text>三</text><text>四</text><text>五</text><text>六</text>
+    </view>
+    <scroll-view class="months" scroll-y scroll-into-view="{{currentMonthId}}" scroll-with-animation="{{false}}" enhanced show-scrollbar="{{false}}">
+      <button wx:if="{{months[0].hasEarlier}}" class="month-step" data-direction="back" bindtap="moveMonths">更早月份</button>
+      <view wx:for="{{months}}" wx:key="id" id="{{item.id}}" class="month">
+        <view class="month-title">{{item.title}}</view>
+        <view class="day-grid">
+          <view
+            wx:for="{{item.days}}"
+            wx:for-item="day"
+            wx:key="date"
+            class="day-cell {{day.blank ? 'blank' : ''}} {{day.date === pendingDate ? 'selected' : ''}} {{day.past ? 'past' : ''}} {{day.disabled ? 'unavailable' : ''}}"
+            data-date="{{day.date}}"
+            data-disabled="{{day.disabled}}"
+            aria-disabled="{{day.disabled}}"
+            bindtap="selectDay"
+            aria-role="button"
+            aria-label="{{day.blank ? '空白日期' : day.date + (day.date === pendingDate ? '，已选择' : '') + (day.past ? '，已过期' : '') + ((!hideDots && statusMap[day.date]) ? '，' + statusLabels[statusMap[day.date]] : '')}}"
+            aria-hidden="{{day.blank}}"
+          >
+            <text>{{day.day}}</text>
+            <view wx:if="{{!hideDots && statusMap[day.date]}}" class="dot {{statusMap[day.date]}}" aria-hidden="true"></view>
+          </view>
+        </view>
+      </view>
+      <button wx:if="{{months.length && months[months.length - 1].hasLater}}" class="month-step" data-direction="forward" bindtap="moveMonths">更晚月份</button>
+    </scroll-view>
+    <view class="drawer-footer">
+      <button class="confirm" bindtap="confirm">确定日期</button>
+    </view>
+  </view>
+</view>

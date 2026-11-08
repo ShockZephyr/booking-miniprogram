@@ -1,0 +1,43 @@
+<view class="catalog">
+  <view wx:if="{{manage}}" class="manage-toolbar">
+    <view class="recycle-entry" bindtap="openRecycleBin" aria-role="button" aria-label="打开项目回收站">
+      <image class="recycle-icon" src="/assets/icons/recycle-bin.png" mode="aspectFit" aria-hidden="true" />
+      <text>回收站</text>
+    </view>
+  </view>
+  <view wx:if="{{manage}}" class="hint">可长按拖动卡片排序，或使用右侧箭头；前 5 项将在首页展示</view>
+  <view wx:if="{{saving}}" class="hint" aria-live="polite">正在保存排序…</view>
+  <view wx:if="{{sortMessage && !saving}}" class="hint success" aria-live="polite">{{sortMessage}}</view>
+  <view wx:if="{{error}}" class="hint error" bindtap="load" aria-role="button" aria-label="项目加载失败，点击重试：{{error}}">{{error}} · 点击重试</view>
+  <view wx:if="{{loading}}" class="hint">加载中…</view>
+  <scroll-view class="list-scroll" scroll-y="{{!dragging}}" scroll-top="{{scrollTop}}" bindscroll="onScroll">
+    <view class="list-content">
+      <view wx:if="{{!loading && !items.length && !error}}" class="hint">暂无项目</view>
+      <view
+        wx:for="{{items}}"
+        wx:key="id"
+        class="project-row {{manage ? 'manage' : ''}} {{dragId === item.id ? 'dragging' : ''}}"
+        data-id="{{item.id}}"
+        bindlongpress="startDrag"
+        bindtouchmove="moveDrag"
+        bindtouchend="endDrag"
+        bindtouchcancel="cancelDrag"
+        aria-role="group"
+        aria-label="{{manage ? '项目' + item.name + '，第' + (index + 1) + '项，共' + items.length + '项；长按卡片可拖动排序' : '项目' + item.name}}"
+      >
+        <view class="card-wrap"><project-card project="{{item}}" action-label="{{manage ? '编辑项目' : '查看项目'}}" bind:select="select" /></view>
+        <view
+          wx:if="{{manage}}"
+          class="reorder-controls"
+          aria-role="group"
+          aria-label="调整{{item.name}}顺序"
+        >
+          <view class="drag-handle" aria-hidden="true"><view></view><view></view><view></view></view>
+          <view class="reorder-button {{index === 0 || saving || dragging ? 'disabled' : ''}}"><view class="reorder-hit up" data-id="{{item.id}}" data-direction="-1" catchtap="moveProject" aria-role="button" aria-disabled="{{index === 0 || saving || dragging}}" aria-label="将{{item.name}}上移"></view><image class="reorder-icon" src="/assets/icons/project-move-up.png" mode="aspectFit" aria-hidden="true" /></view>
+          <view class="reorder-button {{index === items.length - 1 || saving || dragging ? 'disabled' : ''}}"><view class="reorder-hit down" data-id="{{item.id}}" data-direction="1" catchtap="moveProject" aria-role="button" aria-disabled="{{index === items.length - 1 || saving || dragging}}" aria-label="将{{item.name}}下移"></view><image class="reorder-icon" src="/assets/icons/project-move-down.png" mode="aspectFit" aria-hidden="true" /></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <view wx:if="{{manage}}" class="footer"><button class="primary-button" bindtap="add" disabled="{{saving || dragging || loading}}">新增项目</button></view>
+</view>

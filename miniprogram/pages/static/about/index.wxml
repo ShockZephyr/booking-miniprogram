@@ -1,0 +1,8 @@
+<view class="page doc-page">
+  <view class="card doc">
+    <view class="title">{{business.name}}</view>
+    <view class="p">{{business.address}}</view>
+    <button class="primary-button" bindtap="call">联系我们 {{business.phone}}</button>
+  </view>
+</view>
+

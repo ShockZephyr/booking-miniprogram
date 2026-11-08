@@ -1,0 +1,18 @@
+.page.weekly-directory { padding-left: 16rpx; padding-right: 16rpx; padding-bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.horizon, .retry { padding: 28rpx; }
+.heading { color: #342f39; font-weight: 700; font-size: 32rpx; line-height: 1.4; }
+.horizon-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8rpx; }
+.horizon-label { flex: 0 0 auto; color: #342f39; font-size: 28rpx; font-weight: 600; line-height: 1.5; }
+.horizon-note { color: #615967; font-size: 24rpx; line-height: 1.5; white-space: nowrap; }
+.days-field { display: flex; align-items: center; gap: 4rpx; flex: 0 0 auto; height: 36px; padding: 0 8rpx; border: 2rpx solid #d8cfe6; border-radius: 12rpx; background: #faf9fc; }
+.days-field.saving { opacity: 0.65; }
+.days-input { flex: 0 0 auto; min-width: 44rpx; height: 32px; line-height: 32px; padding: 0; margin: 0; text-align: center; font-size: 28rpx; font-weight: 600; font-variant-numeric: tabular-nums; color: #403a48; }
+.days-unit { flex: 0 0 auto; color: #615967; font-size: 26rpx; line-height: 1.4; }
+.days-feedback { margin-top: 12rpx; color: #793e44; font-size: 24rpx; line-height: 1.5; text-align: right; }
+.retry-days { display: flex; align-items: center; justify-content: flex-end; min-height: 44px; }
+.directory-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; width: 100%; margin: 32rpx 0 16rpx; padding: 0 16rpx; }
+.directory-head .heading { min-width: 0; }
+.batch-link { display: flex; align-items: center; justify-content: flex-end; flex: 0 0 auto; min-height: 44px; padding: 8rpx 0 8rpx 16rpx; margin-left: auto; color: #5c556b; font-size: 26rpx; font-weight: 600; line-height: 1.4; }
+.roster { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20rpx; }
+.empty-directory { padding: 24rpx 8rpx; font-size: 28rpx; }
+.retry { display: block; width: 100%; margin: 0; color: #793e44; text-align: left; font-size: 28rpx; }

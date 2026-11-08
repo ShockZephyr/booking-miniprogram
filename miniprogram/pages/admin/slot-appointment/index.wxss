@@ -1,0 +1,4 @@
+@import "../../../templates/appointment-history/index.wxss";
+.appointment-detail-page { padding:24rpx; padding-bottom:calc(32rpx + env(safe-area-inset-bottom)); }
+.history-section { margin-top:24rpx; }
+.error-card { padding:28rpx; color:#7d343b; }

@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的",
+  "usingComponents": {
+    "user-header": "/components/user-header/index",
+    "vip-card": "/components/vip-card/index"
+  }
+}
+

@@ -1,0 +1,20 @@
+<view class="page">
+  <view wx:if="{{loading}}">加载中…</view><view wx:elif="{{error}}" class="card error-card">{{error}}</view>
+  <block wx:elif="{{allowed}}">
+    <view class="card form">
+      <view class="title">项目图片</view>
+      <view class="upload" bindtap="chooseImage" aria-role="button" aria-label="{{uploading ? '图片上传中' : imageSrc ? '更换项目图片' : '上传项目图片'}}">
+        <image wx:if="{{imageSrc}}" src="{{imageSrc}}" mode="aspectFit" binderror="imageFailed" aria-hidden="true" />
+        <view class="upload-label">{{uploading ? '上传中…' : imageSrc ? '更换图片 ＋' : '上传图片 ＋'}}</view>
+        <view class="muted">JPG / PNG / WebP，最大 5MB</view>
+      </view>
+      <view wx:if="{{imageError}}" class="image-error">图片无法加载，请重新上传</view>
+      <view class="title">名称</view><input value="{{name}}" data-field="name" bindinput="input" maxlength="60" disabled="{{saving}}" aria-label="项目名称" />
+      <view class="fields"><view><view class="title">时长（分钟）</view><input type="number" value="{{durationMinutes}}" data-field="durationMinutes" bindinput="input" maxlength="4" disabled="{{saving}}" aria-label="项目时长，分钟" /></view><view><view class="title">价格（元）</view><input type="digit" value="{{price}}" data-field="price" bindinput="input" maxlength="10" placeholder="" disabled="{{saving}}" aria-label="项目价格，元" /></view></view>
+      <view class="title">项目效果</view><textarea class="effect" value="{{effect}}" data-field="effect" bindinput="input" maxlength="120" placeholder="简述项目效果" disabled="{{saving}}" aria-label="项目效果" />
+      <view class="title">项目介绍</view><textarea value="{{description}}" data-field="description" bindinput="input" maxlength="5000" placeholder="介绍项目内容与体验" disabled="{{saving}}" aria-label="项目介绍" />
+    </view>
+    <button class="primary-button save-button" bindtap="save" disabled="{{saving || uploading}}" loading="{{saving}}">保存项目</button>
+    <button wx:if="{{id}}" class="delete" bindtap="remove" disabled="{{saving || uploading}}">删除项目</button>
+  </block>
+</view>

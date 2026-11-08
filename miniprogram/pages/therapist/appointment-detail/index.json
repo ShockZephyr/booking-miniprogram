@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "预约详情",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "backgroundColor": "#F3F2F6",
+  "usingComponents": {
+    "loading-state": "/components/loading-state/index",
+    "appointment-card": "/components/appointment-card/index"
+  }
+}

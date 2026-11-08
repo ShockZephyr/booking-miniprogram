@@ -1,0 +1,85 @@
+name: booking
+
+services:
+  database:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: booking_prod
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - /var/lib/booking/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking -d booking_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - private
+
+  backend:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        PG_MAJOR: "18"
+    restart: unless-stopped
+    env_file:
+      - ${BOOKING_ENV_FILE:-/etc/booking/production.env}
+    environment:
+      DATABASE_URL: postgres://booking:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/booking_prod
+    volumes:
+      - /var/lib/booking/uploads:/var/lib/booking/uploads
+      - /var/log/booking:/var/log/booking
+      - /var/backups/booking:/var/backups/booking
+    expose:
+      - "3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - private
+
+  nginx:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/booking.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/booking/tls/fullchain.pem:/etc/nginx/tls/fullchain.pem:ro
+      - /etc/booking/tls/privkey.pem:/etc/nginx/tls/privkey.pem:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --no-check-certificate --header='Host: example.invalid' -O /dev/null https://127.0.0.1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - private
+
+networks:
+  private:
+    driver: bridge

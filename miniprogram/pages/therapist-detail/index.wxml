@@ -1,0 +1,19 @@
+<view class="detail-page">
+  <view wx:if="{{loading}}" class="page muted">加载中…</view>
+  <view wx:elif="{{error}}" class="page error-page" bindtap="onShow" aria-role="button" aria-label="芳疗师详情加载失败，点击重试：{{error}}">{{error}} · 点击重试</view>
+  <block wx:elif="{{therapist}}">
+    <block wx:if="{{imageSource && !imageFailed}}"><image wx:for="{{imageRequests}}" wx:for-item="imageRequest" wx:key="key" class="hero-portrait" src="{{imageRequest.src}}" data-attempt="{{imageRequest.key}}" binderror="imageError" mode="widthFix" aria-label="芳疗师{{therapist.name}}的照片" /></block>
+    <view wx:elif="{{imageFailed}}" class="hero-portrait placeholder" bindtap="retryImage" aria-role="button" aria-label="重新加载芳疗师图片"><text>图片加载失败</text><view class="image-retry-label"><text>点击重试</text><image wx:if="{{!retryIconFailed}}" class="retry-icon" src="/assets/icons/image-retry.png" mode="aspectFit" binderror="retryIconError" aria-hidden="true" /></view></view>
+    <view wx:else class="hero-portrait placeholder">芳疗师图片待完善</view>
+    <view class="profile-card">
+      <view class="therapist-name">{{therapist.name}}</view>
+      <view class="section-title">擅长项目</view>
+      <view class="tags"><text wx:for="{{therapist.tags}}" wx:key="*this">{{item}}</text><text wx:if="{{!therapist.tags.length}}">暂无擅长项目</text></view>
+    </view>
+    <view class="profile-card biography-card">
+      <view class="section-title">个人简介</view>
+      <text class="bio">{{therapist.bio || '简介待完善'}}</text>
+    </view>
+    <view wx:if="{{canBook}}" class="bottom-bar"><button class="primary-button" bindtap="book">立即预约</button></view>
+  </block>
+</view>

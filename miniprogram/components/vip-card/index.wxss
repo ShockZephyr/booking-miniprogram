@@ -1,0 +1,37 @@
+.vip-card {
+  min-height: 156rpx;
+  border-radius: 32rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #e6e0f8 0%, #fff4cf 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  color: #5c556b;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.vip-card > view:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.status,
+.link {
+  margin-top: 12rpx;
+  color: #5c556b;
+  font-size: 24rpx;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}

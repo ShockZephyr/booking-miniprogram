@@ -1,0 +1,8 @@
+<view class="user-header">
+  <image wx:if="{{user.avatarUrl}}" class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+  <view wx:else class="avatar placeholder">{{initial}}</view>
+  <view class="info">
+    <view class="name">{{user.nickname || '用户'}}</view>
+    <view class="phone">{{user.phone}}</view>
+  </view>
+</view>

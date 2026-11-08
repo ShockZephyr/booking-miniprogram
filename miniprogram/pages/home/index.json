@@ -1,0 +1,4 @@
+{
+  "navigationBarTitleText": "预约小程序",
+  "usingComponents": { "therapist-card": "/components/therapist-card/index", "project-card": "/components/project-card/index", "home-cover-image": "/components/cover-image/index" }
+}

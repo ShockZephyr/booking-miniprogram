@@ -1,0 +1,3 @@
+.message { padding: 28rpx; }
+.date-strip-shell { background: #fff; border-bottom: 2rpx solid #e4e1e8; }
+.date-strip-inner { max-width: 520px; padding: 0 24rpx; margin: 0 auto; }

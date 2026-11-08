@@ -1,0 +1,8 @@
+<view class="page appointment-detail-page">
+  <loading-state wx:if="{{loading}}" text="加载预约详情" />
+  <view wx:elif="{{error}}" class="card error-card" bindtap="load" aria-role="button">{{error}} · 点击重试</view>
+  <block wx:elif="{{currentAppointment}}">
+    <appointment-card appointment="{{currentAppointment}}" detail="{{true}}" actionMode="admin" showMemberInfo="{{true}}" busy="{{signing}}" bind:action="action" />
+    <include src="../../../templates/appointment-history/index.wxml" />
+  </block>
+</view>

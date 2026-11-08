@@ -1,0 +1,126 @@
+<view class="page appointments-page">
+  <view class="tabs" aria-role="group" aria-label="预约状态筛选">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{active === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="switchTab"
+      aria-role="button"
+      aria-label="{{item.text}}{{unreadTabs[item.key] ? '，未读' + unreadTabs[item.key] + '条' : ''}}{{active === item.key ? '，已选择' : ''}}"
+    >
+      <text>{{item.text}}</text><text wx:if="{{unreadTabs[item.key]}}" class="tab-unread">（{{unreadTabs[item.key]}}）</text>
+    </view>
+  </view>
+
+  <view wx:if="{{sortMenuVisible}}" class="sort-mask" catchtap="closeSortMenu" data-sort-version="{{sortVersion}}" catchtouchmove="noop" aria-hidden="true"></view>
+  <view wx:if="{{hasUser || isAdminMode || isTherapistMode}}" class="list-tools {{sortMenuVisible ? 'sort-open' : ''}}">
+    <view class="filter-toolbar">
+      <view class="sort-trigger {{sortMenuVisible ? 'sort-expanded' : ''}}" bindtap="toggleSortMenu" data-sort-version="{{sortVersion}}" aria-role="button" aria-expanded="{{sortMenuVisible}}" aria-label="排序方式{{sortMenuVisible ? '，已展开' : '，点击展开'}}">
+        <text>排序方式</text><view class="sort-chevron" aria-hidden="true"></view>
+      </view>
+      <view class="filter-trigger" bindtap="openFilterDrawer" data-filter-version="{{filterVersion}}" aria-role="button" aria-label="打开筛选方式{{activeFilterCount ? '，已启用' + activeFilterCount + '类筛选' : ''}}">
+        <image class="filter-icon" src="/assets/icons/filter.png" mode="aspectFit" aria-hidden="true"></image>
+        <text>筛选方式</text>
+        <text wx:if="{{activeFilterCount}}" class="filter-count">{{activeFilterCount}}</text>
+      </view>
+    </view>
+    <view wx:if="{{sortMenuVisible}}" class="sort-menu" catchtap="noop" catchtouchmove="noop" aria-role="group" aria-label="选择排序方式">
+      <view wx:for="{{sortOptions}}" wx:key="key" class="sort-option {{sort === item.key ? 'sort-selected' : ''}}" hover-class="sort-option-hover" bindtap="selectSort" data-sort="{{item.key}}" data-sort-version="{{sortVersion}}" aria-role="button" aria-label="{{item.text}}{{sort === item.key ? '，已选择' : ''}}">
+        <view class="sort-check-space" aria-hidden="true"><view wx:if="{{sort === item.key}}" class="sort-check"></view></view>
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="appointment-body">
+    <loading-state wx:if="{{loading}}" text="加载预约记录" />
+    <view wx:elif="{{listError}}" class="load-error" aria-live="polite">
+      <text>{{listError}}</text>
+      <button class="retry-button" bindtap="retryAppointments">重试</button>
+    </view>
+    <block wx:elif="{{appointments.length === 0}}">
+      <empty-state text="{{emptyText}}" />
+      <button wx:if="{{identityReady && !hasUser}}" class="primary-button" bindtap="loginForAppointment">去登录</button>
+    </block>
+    <view wx:else class="appointment-list">
+      <view
+        wx:for="{{appointments}}"
+        wx:key="id"
+        class="appointment-tap-target"
+        data-id="{{item.id}}"
+        bindtap="selectAppointment"
+        aria-role="button"
+        aria-label="{{item.serviceItemName || '预约项目'}}，{{item.date}}，{{item.startTime}}至{{item.endTime}}，{{item.statusText}}{{selectedAppointmentId === item.id ? '，已选择' : ''}}"
+      >
+        <appointment-card
+          appointment="{{item}}"
+          showActions="{{!isAdminMode || active === 'pending' || active === 'all'}}"
+          showMemberInfo="{{isAdminMode || isTherapistMode}}"
+          actionMode="{{isTherapistMode ? 'therapist' : isAdminMode ? 'admin' : 'user'}}"
+          busy="{{signing || cancelling}}"
+          selected="{{selectedAppointmentId === item.id}}"
+          bind:action="cardAction"
+        />
+      </view>
+    </view>
+    <loading-state wx:if="{{loadingMore}}" text="加载更多预约" />
+    <view wx:elif="{{moreError}}" class="load-error" aria-live="polite">
+      <text>{{moreError}}</text>
+      <button class="retry-button" bindtap="retryAppointments">重试加载更多</button>
+    </view>
+    <view wx:if="{{isAdminMode && !loading && !loadingMore && appointments.length > 0 && !hasMore}}" class="end-text">已显示全部预约</view>
+  </view>
+
+  <view wx:if="{{filterDrawerVisible}}" class="filter-drawer-wrap">
+    <view class="filter-drawer-mask" bindtap="closeFilterDrawer" data-filter-version="{{filterVersion}}" catchtouchmove="noop" aria-hidden="true"></view>
+    <view class="filter-drawer" catchtap="noop" aria-role="dialog" aria-modal="true" aria-label="筛选方式">
+      <view class="filter-drawer-header">
+        <text class="filter-drawer-title">筛选方式</text>
+        <view class="filter-text-action filter-close" bindtap="closeFilterDrawer" data-filter-version="{{filterVersion}}" aria-role="button" aria-label="关闭筛选方式">关闭</view>
+      </view>
+      <scroll-view class="filter-drawer-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="filter-section">
+          <view class="filter-section-head"><view class="filter-section-title">项目</view><view class="filter-text-action filter-link" bindtap="selectAllProjects" data-filter-version="{{filterVersion}}" aria-role="button" aria-label="勾选全部项目">全部</view></view>
+          <checkbox-group class="filter-choice-list" bindchange="selectFilterProjects" data-filter-version="{{filterVersion}}">
+            <label wx:for="{{serviceItems}}" wx:key="id" aria-label="{{item.name}}"><checkbox value="{{item.id}}" checked="{{item.filterChecked}}" color="#5c556b" /><text class="{{item.filterInactiveOption ? 'filter-inactive' : ''}}">{{item.name}}</text></label>
+          </checkbox-group>
+          <view wx:if="{{serviceItemsLoading}}" class="filter-empty" aria-live="polite">加载项目…</view>
+          <view wx:elif="{{serviceItemsError}}" class="filter-load-error" aria-live="polite"><text>{{serviceItemsError}}</text><button class="retry-button" bindtap="retryFilterOptions" data-filter-version="{{filterVersion}}" disabled="{{therapistsLoading}}" aria-label="重试加载筛选项">重试</button></view>
+          <view wx:elif="{{!serviceItems.length}}" class="filter-empty">暂无项目</view>
+        </view>
+        <view wx:if="{{!isTherapistMode}}" class="filter-section">
+          <view class="filter-section-head"><view class="filter-section-title">芳疗师</view><view class="filter-text-action filter-link" bindtap="selectAllTherapists" data-filter-version="{{filterVersion}}" aria-role="button" aria-label="勾选全部芳疗师">全部</view></view>
+          <checkbox-group class="filter-choice-list" bindchange="selectFilterTherapists" data-filter-version="{{filterVersion}}">
+            <label wx:for="{{therapists}}" wx:key="id" aria-label="{{item.name}}"><checkbox value="{{item.id}}" checked="{{item.filterChecked}}" color="#5c556b" /><text class="{{item.filterInactiveOption ? 'filter-inactive' : ''}}">{{item.name}}</text></label>
+          </checkbox-group>
+          <view wx:if="{{therapistsLoading}}" class="filter-empty" aria-live="polite">加载芳疗师…</view>
+          <view wx:elif="{{therapistsError}}" class="filter-load-error" aria-live="polite"><text>{{therapistsError}}</text><button class="retry-button" bindtap="retryFilterOptions" data-filter-version="{{filterVersion}}" disabled="{{serviceItemsLoading}}" aria-label="重试加载筛选项">重试</button></view>
+          <view wx:elif="{{!therapists.length}}" class="filter-empty">暂无芳疗师</view>
+        </view>
+        <view class="filter-section">
+          <view class="filter-section-head"><view class="filter-section-title">日期</view><view class="date-shortcuts"><button bindtap="useDateFilter" data-filter-version="{{filterVersion}}">筛选日期</button><button bindtap="useAllDatesFilter" data-filter-version="{{filterVersion}}">全部日期</button></view></view>
+          <view wx:if="{{draftAllDates}}" class="all-dates">不限日期</view>
+          <view wx:else class="date-range">
+            <picker mode="date" value="{{draftFromDate}}" data-field="draftFromDate" bindchange="inputFilterDate" data-filter-version="{{filterVersion}}"><view class="filter-picker"><text>开始</text><text>{{draftFromDate}}</text></view></picker>
+            <text class="range-separator">至</text>
+            <picker mode="date" value="{{draftToDate}}" data-field="draftToDate" bindchange="inputFilterDate" data-filter-version="{{filterVersion}}"><view class="filter-picker"><text>结束</text><text>{{draftToDate}}</text></view></picker>
+          </view>
+        </view>
+        <view class="filter-section">
+          <view class="filter-section-head"><view class="filter-section-title">时间</view><view class="filter-text-action filter-link" bindtap="useAllTimesFilter" data-filter-version="{{filterVersion}}" aria-role="button" aria-label="筛选全部时间">全部时间</view></view>
+          <view class="date-range">
+            <picker mode="selector" range="{{startTimeRange}}" value="{{draftStartPickerValue}}" data-filter-version="{{filterVersion}}" aria-label="筛选开始时间" bindchange="inputFilterStart"><view class="filter-picker"><text>开始</text><text>{{draftStartTime}}</text></view></picker>
+            <text class="range-separator">至</text>
+            <picker mode="selector" range="{{endTimeRange}}" value="{{draftEndPickerValue}}" data-filter-version="{{filterVersion}}" aria-label="筛选结束时间" bindchange="inputFilterEnd"><view class="filter-picker"><text>结束</text><text>{{draftEndTime}}</text></view></picker>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="filter-drawer-footer">
+        <button class="filter-reset" bindtap="resetFilterDraft" data-filter-version="{{filterVersion}}">重置</button>
+        <button class="filter-confirm" bindtap="confirmFilters" data-filter-version="{{filterVersion}}">确定</button>
+      </view>
+    </view>
+  </view>
+
+</view>

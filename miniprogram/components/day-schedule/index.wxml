@@ -1,0 +1,105 @@
+<view wx:if="{{loading}}" class="notice loading-notice" aria-live="polite">正在加载排班…</view>
+<view wx:elif="{{error}}" class="notice error-notice card" aria-live="polite"><text>{{error}}</text><button class="secondary-button retry" bindtap="load">重试</button></view>
+<view wx:elif="{{day}}" class="day-content {{role === 'customer' ? 'customer-content' : role === 'admin' ? 'admin-content' : ''}}">
+  <view class="schedule-profile-card">
+    <view class="profile-identity">
+      <block wx:if="{{imageSource && !imageFailed}}"><image wx:for="{{imageRequests}}" wx:for-item="imageRequest" wx:key="key" class="profile-avatar" src="{{imageRequest.src}}" data-attempt="{{imageRequest.key}}" binderror="imageError" mode="aspectFill" aria-label="芳疗师{{day.therapistName}}的照片" /></block>
+      <view wx:elif="{{imageFailed}}" class="profile-avatar profile-placeholder" bindtap="retryImage" aria-role="button" aria-label="重新加载芳疗师图片"><image wx:if="{{!retryIconFailed}}" class="retry-icon" src="/assets/icons/image-retry.png" mode="aspectFit" binderror="retryIconError" aria-hidden="true" /><text>重试</text></view>
+      <view wx:else class="profile-avatar profile-placeholder" aria-label="芳疗师暂无照片">暂无</view>
+      <text class="profile-name">{{day.therapistName}}</text>
+    </view>
+    <view class="profile-specialties">
+      <text class="specialty-label">擅长项目：</text>
+      <view class="specialty-tags">
+        <block wx:if="{{day.therapistTags && day.therapistTags.length}}"><text wx:for="{{day.therapistTags}}" wx:key="*this" class="specialty-tag">{{item}}</text></block>
+        <text wx:else class="specialty-empty">暂无</text>
+      </view>
+    </view>
+  </view>
+  <view class="guide schedule-guide" wx:if="{{role === 'customer' && groups.length}}" aria-live="polite">
+    <view>{{selectionGuide}}</view>
+  </view>
+  <view class="guide schedule-guide" wx:elif="{{role === 'admin' && groups.length}}">
+    <view wx:if="{{bulkClockUnavailable}}" data-view-version="{{viewVersion}}" bindtap="retryServerClock" aria-role="button">服务器时间未同步，点击重试</view>
+    <block wx:else>可多选空闲格子调整当天排班</block>
+  </view>
+  <view wx:if="{{role === 'admin' && groups.length}}" class="schedule-toolbar">
+    <view class="close-all open-all {{saving || confirmingDay || !canOpenAll ? 'disabled' : ''}}" data-action="openAll" data-view-version="{{viewVersion}}" bindtap="applyDay" hover-class="close-all-pressed" aria-role="button" aria-disabled="{{saving || confirmingDay || !canOpenAll}}" aria-label="开启当天所有未预约且未结束的已关闭时段">
+      <view class="close-all-content">
+        <text>一键开启</text>
+        <image wx:if="{{!openAllIconFailed}}" class="close-all-icon" src="/assets/icons/schedule-open-all.png" mode="aspectFit" binderror="openAllIconError" aria-hidden="true" />
+      </view>
+    </view>
+    <view class="close-all {{saving || confirmingDay || !canCloseAll ? 'disabled' : ''}}" data-action="closeAll" data-view-version="{{viewVersion}}" bindtap="applyDay" hover-class="close-all-pressed" aria-role="button" aria-disabled="{{saving || confirmingDay || !canCloseAll}}" aria-label="关闭当天所有未预约且未结束的空闲时段">
+      <view class="close-all-content">
+        <text>一键关闭</text>
+        <image wx:if="{{!closeAllIconFailed}}" class="close-all-icon" src="/assets/icons/schedule-close-all.png" mode="aspectFit" binderror="closeAllIconError" aria-hidden="true" />
+      </view>
+    </view>
+  </view>
+  <view class="notice empty-notice card" wx:if="{{!groups.length}}">当天休息</view>
+  <view class="range {{role === 'admin' && index === 0 ? 'first-range' : ''}}" wx:for="{{groups}}" wx:key="id" wx:for-item="group">
+    <text class="range-title">{{group.startTime}} – {{group.endTime}}</text>
+    <view class="points" aria-role="group" aria-label="{{group.startTime}}至{{group.endTime}}时间点">
+      <block wx:if="{{role === 'therapist'}}">
+        <view wx:for="{{group.points}}" wx:key="time" class="point readonly {{item.state}}" aria-label="{{item.time}} {{item.hint}}">
+          <text>{{item.time}}</text><text wx:if="{{item.caption}}" class="hint">{{item.caption}}</text>
+        </view>
+      </block>
+      <block wx:else>
+        <button wx:for="{{group.points}}" wx:key="time" class="point {{item.state}} {{role === 'customer' && item.disabled && item.state !== 'end-only' && item.state !== 'limited' ? 'inactive' : ''}}" disabled="{{role === 'customer' && (confirming || submitting || saved || unknown)}}" aria-disabled="{{item.disabled || (role === 'customer' && (confirming || submitting || saved || unknown))}}" aria-label="{{item.time}} {{item.hint}}" data-time="{{item.time}}" data-view-version="{{viewVersion}}" bindtap="tapPoint">
+          <text>{{item.time}}</text><text wx:if="{{item.caption}}" class="hint">{{item.caption}}</text>
+        </button>
+      </block>
+    </view>
+  </view>
+  <view wx:if="{{role === 'customer' && groups.length}}" class="choice card" aria-live="polite">
+    <view class="selection">
+      <text>开始 {{start || '待选择'}}</text><text>结束 {{end || '待选择'}}</text>
+      <text wx:if="{{duration}}" class="duration">共 {{duration}} 分钟</text>
+    </view>
+    <view class="actions"><button wx:if="{{start && !stopped}}" class="secondary-button" disabled="{{confirming || submitting || saved || unknown}}" data-view-version="{{viewVersion}}" bindtap="resetSelection">重新选时</button></view>
+  </view>
+  <view wx:if="{{role === 'customer'}}" class="card booking-form">
+    <view class="section-title">可约项目</view>
+    <view class="booking-project-help">若需在已选时间段内，预约其他项目，可联系芳疗师，或在备注中说明。</view>
+    <checkbox-group class="project-grid" data-view-version="{{viewVersion}}" bindchange="pickItem">
+      <label class="project-option {{item.wide ? 'wide' : ''}}" wx:for="{{items}}" wx:key="id"><checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{confirming || submitting || saved || unknown}}" color="#5c556b" /><text class="project-name">{{item.name}}</text></label>
+    </checkbox-group>
+    <text wx:if="{{!items.length}}" class="muted">当天暂无可约项目</text>
+    <view class="note-heading"><text>预约备注</text><text class="optional">选填 · 最多250字</text></view>
+    <textarea class="booking-note" maxlength="250" placeholder="如有需要，可在此补充说明" placeholder-class="note-placeholder" value="{{note}}" disabled="{{confirming || submitting || saved || unknown}}" data-view-version="{{viewVersion}}" bindinput="inputNote" aria-label="预约备注，选填，最多250字" />
+    <view wx:if="{{notice}}" class="form-notice" aria-live="polite">{{notice}}</view>
+  </view>
+  <block wx:if="{{role === 'admin'}}">
+    <view wx:if="{{groups.length}}" class="actions admin-actions"><button class="schedule-action close-action" data-action="close" data-view-version="{{viewVersion}}" bindtap="applyDay" disabled="{{saving || confirmingDay || !canCloseChosen}}">关闭时段</button><button class="schedule-action open-action" data-action="open" data-view-version="{{viewVersion}}" bindtap="applyDay" disabled="{{saving || confirmingDay || !canOpenChosen}}">开启时段</button></view>
+    <view class="card projects">
+      <view class="project-heading"><view class="section-title">当天可约项目</view><view class="project-select-all {{saving || confirmingDay || !projects.length ? 'disabled' : ''}}" data-view-version="{{viewVersion}}" bindtap="allProjects" aria-role="button" aria-label="全选当天可约项目" aria-disabled="{{saving || confirmingDay || !projects.length}}">全选</view></view>
+      <checkbox-group class="project-grid" data-view-version="{{viewVersion}}" bindchange="selectProjects"><label class="project-option {{item.wide ? 'wide' : ''}}" wx:for="{{projects}}" wx:key="id"><checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{saving || confirmingDay}}" color="#5c556b"/><text class="project-name">{{item.name}}</text></label></checkbox-group>
+      <button class="secondary-button project-save" data-action="projects" data-view-version="{{viewVersion}}" bindtap="applyDay" disabled="{{saving || confirmingDay}}">保存当天项目</button>
+    </view>
+  </block>
+  <view wx:if="{{role !== 'customer'}}" class="card appointments"><view class="section-title">当天预约</view>
+    <view wx:if="{{!appointments.length}}" class="appointment-empty">暂无预约</view>
+    <view wx:else class="day-appointment-list">
+      <view wx:for="{{appointments}}" wx:key="id" class="day-appointment-card" data-id="{{item.id}}" bindtap="openAppointment" hover-class="day-appointment-pressed" aria-role="button" aria-label="查看{{item.serviceItemName}}预约，{{item.startTime}}至{{item.endTime}}，{{item.label}}">
+        <view class="day-appointment-layout">
+          <view class="appointment-heading"><text class="appointment-primary">{{item.whitelistRemarkName || item.userNickname || '会员'}}</text><text class="appointment-status status-{{item.status}}">{{item.label}}</text></view>
+          <view class="appointment-details">
+            <text>{{item.startTime}} – {{item.endTime}}</text>
+            <text>预约项目：{{item.projectSummary}}</text>
+            <text>会员手机：{{item.userPhone || '-'}}</text>
+            <text wx:if="{{item.notePreview}}">备注：{{item.notePreview}}</text>
+          </view>
+          <image class="appointment-chevron" src="/assets/icons/chevron-left.png" mode="aspectFit" aria-hidden="true" />
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+<view wx:if="{{visible && role === 'customer' && (day || saved || unknown)}}" class="booking-footer">
+  <view class="booking-footer-inner">
+    <text wx:if="{{formHint}}" class="submit-hint" aria-live="polite">{{formHint}}</text>
+    <button class="primary-button booking-submit" loading="{{submitting}}" disabled="{{submitting || confirming || (!saved && !unknown && (loading || !nextReady || !selectedItemIds.length))}}" bindtap="submit">{{unknown ? '查看我的预约' : saved ? '返回我的预约' : editing ? '保存修改' : '提交预约'}}</button>
+  </view>
+</view>

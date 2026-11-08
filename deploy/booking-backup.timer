@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Booking backup at 02:40 Shanghai time
+
+[Timer]
+OnCalendar=*-*-* 02:40:00 Asia/Shanghai
+Persistent=true
+Unit=booking-backup.service
+
+[Install]
+WantedBy=timers.target

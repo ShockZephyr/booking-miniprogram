@@ -1,0 +1,69 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/booking/index",
+    "pages/schedule-day/index",
+    "pages/mine/index",
+    "pages/therapist/appointment-detail/index",
+    "pages/appointment-detail/index",
+    "pages/my-appointments/index",
+    "pages/member/index",
+    "pages/settings/index",
+    "pages/static/privacy/index",
+    "pages/static/agreement/index",
+    "pages/static/about/index",
+    "pages/admin/calendar/index",
+    "pages/admin/batch-slots/index",
+    "pages/admin/whitelist/index",
+    "pages/admin/slot-appointment/index",
+    "pages/admin/recycle-bin/index",
+    "pages/therapists/index",
+    "pages/therapist-detail/index",
+    "pages/admin/therapist-edit/index",
+    "pages/projects/index",
+    "pages/project-detail/index",
+    "pages/admin/project-edit/index",
+    "pages/admin/covers/index",
+    "pages/admin/cover-edit/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTitleText": "芳疗预约",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F8F7FC"
+  },
+  "tabBar": {
+    "color": "#776E80",
+    "selectedColor": "#8663AA",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "assets/icons/tab-home.png",
+        "selectedIconPath": "assets/icons/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/booking/index",
+        "text": "预约",
+        "iconPath": "assets/icons/tab-booking.png",
+        "selectedIconPath": "assets/icons/tab-booking-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/icons/tab-mine.png",
+        "selectedIconPath": "assets/icons/tab-mine-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于打开门店位置和导航"
+    }
+  }
+}

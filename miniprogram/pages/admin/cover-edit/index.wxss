@@ -1,0 +1,9 @@
+.panel { padding: 28rpx; }
+.title { margin-bottom: 20rpx; font-size: 32rpx; font-weight: 650; }
+.preview { height: 320rpx; overflow: hidden; border-radius: 18rpx; background: #f1edf7; }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2rpx dashed #a395af; color: #655674; }
+.plus { font-size: 60rpx; line-height: 1.1; }
+.hint { color: #6f6876; font-size: 24rpx; margin: 14rpx 0 22rpx; }
+.panel button { margin: 16rpx 0 0; width: 100%; padding: 0 24rpx; }
+.panel .remove { color: #793e44; background: #f6e9ea; }
+.panel .remove:active { background: #ecd4d6; }

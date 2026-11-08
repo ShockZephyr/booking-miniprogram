@@ -1,0 +1,76 @@
+<view class="home">
+  <view wx:if="{{(isAdmin || isTherapist) && unread.total}}" class="unread-banner {{unreadOpening ? 'unread-opening' : ''}}" bindtap="openUnread" hover-class="unread-banner-pressed" aria-role="button" aria-label="查看未读预约：新增{{unread.created}}条，变更{{unread.changed}}条" aria-busy="{{unreadOpening}}">
+    <view class="unread-banner-content">
+      <text wx:if="{{unread.created}}" class="unread-created-count">有 {{unread.created}} 条未读新增</text>
+      <text wx:if="{{unread.changed}}">有 {{unread.changed}} 条未读变更</text>
+    </view>
+    <view class="unread-banner-chevron" aria-hidden="true"></view>
+  </view>
+  <swiper wx:if="{{covers.length}}" class="hero" autoplay="{{covers.length > 1}}" circular="{{covers.length > 1}}" indicator-dots="{{covers.length > 1}}" interval="4200" duration="500">
+    <swiper-item wx:for="{{covers}}" wx:key="id"><home-cover-image src="{{item.imageSrc}}" label="首页封面{{index + 1}}" /></swiper-item>
+  </swiper>
+  <swiper wx:else class="hero" autoplay circular indicator-dots interval="4200" duration="500">
+    <swiper-item wx:for="{{banners}}" wx:key="title">
+      <view class="banner banner-{{index}}">
+        <view class="banner-text">
+          <text class="banner-title">{{item.title}}</text>
+          <text class="banner-subtitle">{{item.subtitle}}</text>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="venue-card card">
+    <view class="venue-main">
+      <view class="venue-info">
+        <view class="venue-title">{{business.name}}</view>
+      </view>
+      <view class="venue-footer">
+        <view class="address-row" bindtap="openLocation" aria-role="button" aria-label="打开地图：{{business.name}}，{{business.address}}">
+          <text class="address-text">{{business.address}}</text><text class="arrow">></text>
+        </view>
+        <view class="venue-actions">
+          <button class="icon-button contact-button" bindtap="callBusiness" aria-label="拨打电话">
+            <image class="action-icon" src="/assets/icons/phone.png" mode="aspectFit" aria-hidden="true"></image>
+          </button>
+          <button class="icon-button" open-type="share" aria-label="分享">
+            <image class="action-icon" src="/assets/icons/share.png" mode="aspectFit" aria-hidden="true"></image>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="quick-grid {{isAdmin ? 'admin' : ''}}">
+    <view
+      wx:for="{{quickEntries}}"
+      wx:key="key"
+      class="quick-item quick-{{item.tone}} card"
+      data-key="{{item.key}}"
+      bindtap="tapQuick"
+      hover-class="quick-item-pressed"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="{{item.text}}"
+    >
+      <image class="quick-icon" src="{{item.iconPath}}" mode="aspectFit" aria-hidden="true"></image>
+      <text class="quick-label">{{item.text}}</text>
+    </view>
+  </view>
+  <view class="therapist-section card">
+    <view class="therapist-heading"><text>金牌芳疗师</text><text class="all-link" bindtap="openTherapists" aria-role="button" aria-label="查看全部芳疗师">{{allTherapistsLabel}}</text></view>
+    <view wx:if="{{therapistsLoading}}" class="muted">加载中…</view>
+    <view wx:elif="{{therapistError}}" class="muted" bindtap="loadTherapists" aria-role="button" aria-label="芳疗师加载失败，点击重试：{{therapistError}}">{{therapistError}} · 点击重试</view>
+    <view wx:elif="{{!therapists.length}}" class="muted">暂无芳疗师</view>
+    <scroll-view wx:else scroll-x class="therapist-scroll" enhanced show-scrollbar="{{false}}">
+      <view wx:for="{{therapists}}" wx:key="id" class="therapist-slide"><therapist-card therapist="{{item}}" bind:select="openTherapist" /></view>
+    </scroll-view>
+  </view>
+  <view class="therapist-section card">
+    <view class="therapist-heading"><text>推荐项目</text><text class="all-link" bindtap="openProjects" aria-role="button" aria-label="查看更多项目">{{moreProjectsLabel}}</text></view>
+    <view wx:if="{{projectsLoading}}" class="muted">加载中…</view>
+    <view wx:elif="{{projectError}}" class="muted" bindtap="loadProjects" aria-role="button" aria-label="项目加载失败，点击重试：{{projectError}}">{{projectError}} · 点击重试</view>
+    <view wx:elif="{{!projects.length}}" class="muted">暂无项目</view>
+    <view wx:else class="project-list"><project-card wx:for="{{projects}}" wx:key="id" project="{{item}}" bind:select="openProject" /></view>
+  </view>
+</view>

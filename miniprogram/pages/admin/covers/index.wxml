@@ -1,0 +1,21 @@
+<page-meta page-style="{{dragId ? 'overflow: hidden;' : ''}}" />
+<view class="page">
+  <view class="heading"><text class="title">首页封面</text><text class="count">{{items.length}} / 5</text></view>
+  <view wx:if="{{loading}}" class="muted">加载中…</view>
+  <view wx:elif="{{error}}" class="notice card" bindtap="load" aria-role="button">{{error}} · 点击重试</view>
+  <block wx:else>
+    <view class="guide">{{items.length > 1 ? '点击编辑，长按拖动调整轮播顺序' : items.length ? '点击封面编辑' : '添加图片后，首页将展示图片封面'}}</view>
+    <view class="grid" data-version="{{version}}" catchtouchmove="{{dragId ? 'dragMove' : ''}}" bindtouchend="drop" bindtouchcancel="cancelDrag">
+      <view wx:for="{{items}}" wx:key="id" class="tile cover-tile {{dragId === item.id ? 'moving' : ''}}"
+        style="order: {{dragId ? previewOrder[item.id] : index}}" data-id="{{item.id}}" data-version="{{version}}"
+        bindlongpress="startDrag" bindtap="edit" aria-role="button" aria-label="编辑第{{index + 1}}张封面">
+        <home-cover-image src="{{item.imageSrc}}" label="封面缩略图" />
+        <text class="badge">{{(dragId ? previewOrder[item.id] : index) + 1}}</text>
+      </view>
+      <view wx:if="{{items.length < 5}}" class="tile add" style="order: 5" data-version="{{version}}" bindtap="add" aria-role="button" aria-label="新增封面">
+        <text class="plus" aria-hidden="true">＋</text><text>新增封面</text>
+      </view>
+    </view>
+    <view wx:if="{{saving}}" class="guide" aria-live="polite">正在保存顺序…</view>
+  </block>
+</view>

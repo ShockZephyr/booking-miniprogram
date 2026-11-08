@@ -1,0 +1,66 @@
+<view class="appointment-card card {{appointment.status === 'checked_in' ? 'checked-in-card' : ''}} {{selected ? 'selected' : ''}} {{!detail && showActions && appointment.canCheckIn && (actionMode === 'therapist' || actionMode === 'admin') ? 'staff-action-card' : ''}}">
+  <view class="card-layout {{detail ? 'detail-layout' : 'list-layout'}} mode-{{actionMode}} {{!detail && showActions && appointment.canCheckIn && (actionMode === 'therapist' || actionMode === 'admin') ? 'staff-inline-actions' : ''}}">
+    <view class="title"><view wx:if="{{!detail && actionMode !== 'user' && appointment.unreadKind}}" class="unread-dot unread-{{appointment.unreadKind}}" aria-role="text" aria-label="{{appointment.unreadKind === 'created' ? '未读新增' : appointment.unreadKind === 'modified' ? '未读修改' : '未读取消'}}"></view>{{detail ? (actionMode === 'admin' ? adminDetailSummary : detailSummary) : summary}}</view>
+    <text class="status {{appointment.displayStatus || appointment.status}}">{{appointment.statusText}}</text>
+    <view class="project-picture">
+      <image wx:for="{{imageRequests}}" wx:key="key" wx:if="{{!imageFailed}}" class="project-image" src="{{item.src}}" data-attempt="{{item.key}}" binderror="imageError" mode="aspectFill" aria-hidden="true" />
+      <view wx:if="{{imageFailed}}" class="picture-placeholder" catchtap="retryImage" aria-role="button" aria-label="重新加载项目图片"><text>加载失败</text><view class="picture-retry"><text>点击重试</text><image wx:if="{{!retryIconFailed}}" src="/assets/icons/image-retry.png" binderror="retryIconError" mode="aspectFit" /></view></view>
+      <view wx:elif="{{!imageSource}}" class="picture-placeholder">项目图片</view>
+    </view>
+    <view class="detail-main">
+      <view class="time appointment-time">{{appointment.date}} {{appointment.startTime}}–{{appointment.endTime}}</view>
+      <view wx:if="{{!detail || actionMode !== 'therapist'}}" class="time">芳疗师：{{appointment.therapistName || '待分配'}}</view>
+      <view wx:if="{{showMemberInfo}}" class="member-info">
+        <view>会员名称：{{appointment.whitelistRemarkName || appointment.userNickname || '无'}}</view>
+      </view>
+      <view wx:if="{{!detail}}" class="note">备注：{{noteSummary || '暂无备注'}}</view>
+    </view>
+    <view
+      wx:if="{{showActions && ((appointment.canCheckIn && (actionMode === 'therapist' || actionMode === 'admin')) || (detail && actionMode === 'admin' && appointment.status !== 'cancelled'))}}"
+      class="compact-actions staff-actions"
+    >
+      <view wx:if="{{appointment.canCheckIn}}" class="compact-action check-in {{busy ? 'disabled' : ''}}">
+        <view class="action-hit" data-type="checkIn" catchtap="action" aria-role="button" aria-label="签到"></view>
+        <text aria-hidden="true">签到</text>
+        <image class="button-icon" src="/assets/icons/appointment-action-checkin.png" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+      <view wx:if="{{detail && actionMode === 'admin' && (appointment.status === 'booked' || appointment.status === 'no_show')}}" class="compact-action danger {{busy ? 'disabled' : ''}}">
+        <view class="action-hit" data-type="cancel" catchtap="action" aria-role="button" aria-label="取消预约" /><text>取消</text><image class="button-icon" src="/assets/icons/appointment-action-cancel.png" mode="aspectFit" />
+      </view>
+      <view wx:if="{{detail && actionMode === 'admin' && appointment.status === 'checked_in'}}" class="compact-action danger undo {{busy ? 'disabled' : ''}}">
+        <view class="action-hit" data-type="uncheckIn" catchtap="action" aria-role="button" aria-label="取消签到" /><text>取消签到</text><image class="button-icon" src="/assets/icons/appointment-action-cancel.png" mode="aspectFit" />
+      </view>
+    </view>
+    <view
+      wx:elif="{{showActions && actionMode === 'user' && (appointment.canCheckIn || appointment.canCancel || appointment.canModify)}}"
+      class="compact-actions user-actions"
+    >
+      <view wx:if="{{appointment.canCheckIn}}" class="compact-action check-in">
+        <view class="action-hit" data-type="checkIn" catchtap="action" aria-role="button" aria-label="签到"></view>
+        <text aria-hidden="true">签到</text>
+        <image class="button-icon" src="/assets/icons/appointment-action-checkin.png" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+      <view wx:if="{{appointment.canModify}}" class="compact-action modify">
+        <view class="action-hit" data-type="modify" catchtap="action" aria-role="button" aria-label="修改预约"></view>
+        <text aria-hidden="true">修改</text>
+        <image class="button-icon" src="/assets/icons/appointment-action-edit.png" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+      <view wx:if="{{appointment.canCancel}}" class="compact-action danger">
+        <view class="action-hit" data-type="cancel" catchtap="action" aria-role="button" aria-label="取消预约"></view>
+        <text aria-hidden="true">取消</text>
+        <image class="button-icon" src="/assets/icons/appointment-action-cancel.png" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{detail}}" class="full-details">
+    <view class="info-row"><text class="row-label">预约项目</text><text class="row-value">{{projectNames}}</text></view>
+    <view class="info-row"><text class="row-label">预约日期</text><text class="row-value">{{appointment.date}}</text></view>
+    <view class="info-row"><text class="row-label">预约时段</text><text class="row-value">{{appointment.startTime}}–{{appointment.endTime}}</text></view>
+    <view class="info-row"><text class="row-label">芳疗师</text><text class="row-value">{{appointment.therapistName || '待分配'}}</text></view>
+    <view wx:if="{{showMemberInfo}}" class="info-row"><text class="row-label">会员名称</text><text class="row-value">{{appointment.whitelistRemarkName || appointment.userNickname || '无'}}</text></view>
+    <view wx:if="{{actionMode === 'admin'}}" class="info-row"><text class="row-label">会员手机</text><text class="row-value">{{appointment.userPhone || '-'}}</text></view>
+    <view class="info-row"><text class="row-label">下单时间</text><text class="row-value">{{appointment.createdAt || '-'}}</text></view>
+    <view class="info-row"><text class="row-label">签到时间</text><text class="row-value">{{appointment.checkedInAt || '暂未签到'}}</text></view>
+    <view class="info-row"><text class="row-label">备注</text><text class="row-value note-value">{{appointment.note || '暂无备注'}}</text></view>
+  </view>
+</view>

@@ -1,0 +1,341 @@
+.appointment-card {
+  padding: 28rpx;
+  background: #ffffff;
+  border: 2rpx solid #efeff2;
+  border-radius: 28rpx;
+  box-shadow: 0 10rpx 28rpx rgba(92, 85, 107, 0.07);
+}
+
+.appointment-card.selected {
+  border-color: #8f7aa3;
+  background: #f1edf7;
+  box-shadow: 0 10rpx 28rpx rgba(92, 85, 107, 0.1);
+}
+
+.appointment-card.staff-action-card {
+  padding-bottom: 36rpx;
+}
+
+.card-layout {
+  display: grid;
+  grid-template-columns: 140rpx minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: stretch;
+  column-gap: 20rpx;
+  row-gap: 12rpx;
+}
+
+.detail-main {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.title {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #2f2f32;
+  overflow-wrap: anywhere;
+}
+.unread-dot { display:inline-block; width:14rpx; height:14rpx; margin-right:8rpx; border-radius:50%; vertical-align:middle; }
+.unread-created { background:#438759; }
+.unread-modified { background:#bc8a17; }
+.unread-cancelled { background:#be4b53; }
+
+.time,
+.note,
+.member-info {
+  color: #6f6876;
+  font-size: 24rpx;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.time + .time,
+.note,
+.member-info {
+  margin-top: 8rpx;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.compact-actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-self: end;
+  margin-top: 16rpx;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  align-self: end;
+  flex-wrap: nowrap;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.compact-actions.user-actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-self: end;
+  margin-top: 16rpx;
+}
+
+.compact-action {
+  position: relative;
+  box-sizing: border-box;
+  width: 108rpx;
+  min-width: 108rpx;
+  max-width: 108rpx;
+  height: 60rpx;
+  min-height: 60rpx;
+  margin: 0;
+  padding: 8rpx 6rpx;
+  border-radius: 30rpx;
+  background: #e5f0e7;
+  color: #365f45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  flex: 0 0 108rpx;
+}
+
+/* Expand only into safe gaps. The narrow layout disables horizontal expansion
+   because native rpx rounding can make the 4rpx gap just one logical pixel. */
+.action-hit { position:absolute; left:-1rpx; right:-1rpx; top:-8rpx; bottom:-4rpx; z-index:1; }
+
+.compact-action .button-icon {
+  width: 24rpx;
+  height: 24rpx;
+  flex: 0 0 24rpx;
+}
+
+.status {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  width: 108rpx;
+  min-width: 108rpx;
+  min-height: 48rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 6rpx 14rpx;
+  background: #efeff2;
+  color: #5c556b;
+  flex: 0 0 auto;
+}
+
+.status.booked {
+  background: #fff4cf;
+  color: #5c556b;
+}
+
+.status.checked_in {
+  background: #e5f0e7;
+  color: #365f45;
+}
+
+.status.cancelled,
+.status.no_show,
+.status.slot_closed {
+  background: #f5dddd;
+  color: #7d343b;
+}
+
+.compact-action.check-in {
+  background: #e5f0e7;
+  color: #365f45;
+}
+
+.compact-action.check-in:active {
+  background: #d3e4d8;
+}
+
+.compact-action.modify {
+  background: #e6e0f8;
+  color: #5c556b;
+}
+
+.compact-action.modify:active {
+  background: #d9d0e7;
+}
+
+.compact-action.danger {
+  background: #f5dddd;
+  color: #7d343b;
+}
+
+.compact-action.danger:active {
+  background: #eccbd0;
+}
+
+@media (max-width: 340px) {
+  .appointment-card {
+    padding: 24rpx;
+  }
+
+  .compact-actions {
+    gap: 4rpx;
+  }
+
+  .action-hit {
+    left: 0px;
+    right: 0px;
+  }
+}
+
+.project-picture { grid-column:1; grid-row:2; width:140rpx; height:140rpx; border-radius:16rpx; overflow:hidden; background:#f3f0f8; }
+.project-image { display:block; width:100%; height:100%; }
+.picture-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6rpx; color:#6f6876; font-size:22rpx; }
+.picture-retry { display:flex; align-items:center; gap:4rpx; }
+.picture-retry image { width:22rpx; height:22rpx; }
+.detail-layout .project-picture { grid-row:1 / 3; }
+.detail-layout .title { grid-column:2; }
+.detail-layout .status { width:108rpx; min-width:108rpx; padding:6rpx 10rpx; box-sizing:border-box; }
+.full-details { border-top:2rpx solid #efeff2; margin-top:28rpx; padding-top:24rpx; }
+.info-row { display:grid; grid-template-columns:128rpx minmax(0,1fr); column-gap:24rpx; margin-top:18rpx; font-size:26rpx; line-height:1.6; }
+.info-row:first-child { margin-top:0; }
+.row-label { color:#6f6876; }
+.row-value { min-width:0; text-align:right; color:#2f2f32; overflow-wrap:anywhere; word-break:break-all; }
+.note-value { white-space:pre-wrap; }
+.compact-action.disabled { opacity:.5; }
+.compact-action.undo { width:160rpx; max-width:160rpx; flex-basis:160rpx; }
+@media(max-width:340px) { .card-layout { grid-template-columns:112rpx minmax(0,1fr) auto; column-gap:14rpx; } .project-picture { width:112rpx; height:112rpx; } .detail-layout .title { font-size:28rpx; } .info-row { column-gap:16rpx; } }
+
+/* Keep the header gap. Detail actions retain their separate, flush row;
+   list-specific spacing and staff alignment are applied below. */
+.list-layout,
+.detail-layout {
+  row-gap: 0rpx;
+}
+
+.list-layout .title,
+.list-layout .status {
+  margin-bottom: 20rpx;
+}
+
+.detail-layout .title,
+.detail-layout .status {
+  margin-bottom: 12rpx;
+}
+
+.list-layout .project-picture,
+.detail-layout .project-picture {
+  align-self: end;
+}
+
+.list-layout .compact-actions,
+.detail-layout .compact-actions {
+  margin-top: 0rpx;
+}
+
+/* Keep hit targets out of the preceding content, even when actions move up. */
+.list-layout .action-hit,
+.detail-layout .action-hit {
+  top: 0rpx;
+}
+
+/* Customer lists keep the existing image size while the three 28rpx rows
+   occupy its full height: date at the top, note at the bottom. */
+.list-layout.mode-user .detail-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.list-layout.mode-user .title {
+  font-size: 32rpx;
+}
+
+.list-layout.mode-user .user-actions {
+  margin-top: 24rpx;
+}
+
+.list-layout.mode-user .detail-main > .time,
+.list-layout.mode-user .detail-main > .note {
+  font-size: 28rpx;
+  line-height: 1.45;
+  margin-top: 0rpx;
+}
+
+@media (max-width: 340px) {
+  .list-layout.mode-user .detail-main > .time,
+  .list-layout.mode-user .detail-main > .note {
+    line-height: 1.25;
+  }
+}
+
+.list-layout.mode-therapist,
+.list-layout.mode-admin {
+  grid-template-columns: 180rpx minmax(0, 1fr) auto;
+}
+
+.list-layout.mode-therapist .project-picture,
+.list-layout.mode-admin .project-picture {
+  position: relative;
+  width: 180rpx;
+  height: auto;
+  align-self: stretch;
+}
+
+.list-layout.mode-therapist .project-image,
+.list-layout.mode-therapist .picture-placeholder,
+.list-layout.mode-admin .project-image,
+.list-layout.mode-admin .picture-placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+/* Staff list check-in aligns with the image's bottom. Reserve the right edge
+   of the last two text rows only while that action is actually visible. */
+.list-layout.staff-inline-actions .staff-actions {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  align-self: end;
+  transform: translateY(12rpx);
+}
+
+.list-layout.staff-inline-actions .member-info,
+.list-layout.staff-inline-actions .note {
+  padding-right: 128rpx;
+}
+
+/* Only the admin hero stretches its image to the member-name row. Customer
+   and therapist details share the compact image and separate action row. */
+.detail-layout.mode-admin {
+  grid-template-columns: 180rpx minmax(0, 1fr) auto;
+}
+
+.detail-layout.mode-admin .project-picture {
+  position: relative;
+  width: 180rpx;
+  height: auto;
+  min-height: 180rpx;
+  align-self: stretch;
+}
+
+.detail-layout.mode-admin .project-image,
+.detail-layout.mode-admin .picture-placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+.detail-layout.mode-admin .detail-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}

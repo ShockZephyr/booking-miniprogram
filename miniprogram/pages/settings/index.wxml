@@ -1,0 +1,31 @@
+<view class="page settings-page">
+  <view class="profile card">
+    <user-header user="{{user}}" />
+  </view>
+  <view class="list card">
+    <view class="row">
+      <text>当前版本</text>
+      <text class="muted">{{version}}</text>
+    </view>
+    <view class="row" data-page="privacy" bindtap="open" aria-role="button" aria-label="查看隐私条款">
+      <text>隐私条款</text>
+      <text class="muted">></text>
+    </view>
+    <view class="row" data-page="agreement" bindtap="open" aria-role="button" aria-label="查看服务协议">
+      <text>服务协议</text>
+      <text class="muted">></text>
+    </view>
+    <view class="row" data-page="about" bindtap="open" aria-role="button" aria-label="查看关于我们">
+      <text>关于我们</text>
+      <text class="muted">></text>
+    </view>
+  </view>
+  <button class="danger-button logout" bindtap="logout" loading="{{loggingOut}}" disabled="{{loggingOut}}">退出登录</button>
+  <view wx:if="{{legal.copyright || legal.organizer || legal.icpNumber}}" class="legal-footer">
+    <view wx:if="{{legal.copyright}}" class="legal-line">{{legal.copyright}}</view>
+    <view wx:if="{{legal.organizer}}" class="legal-line">主办单位：{{legal.organizer}}</view>
+    <button wx:if="{{legal.icpNumber}}" class="icp-link" bindtap="showIcpQuery" aria-label="ICP备案号 {{legal.icpNumber}}，查看并复制工信部查询网址">
+      <text>ICP 备案号：</text><text class="icp-number">{{legal.icpNumber}}</text>
+    </button>
+  </view>
+</view>

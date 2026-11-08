@@ -1,0 +1,5 @@
+<view class="loading">
+  <view class="spinner"></view>
+  <text>{{text}}</text>
+</view>
+

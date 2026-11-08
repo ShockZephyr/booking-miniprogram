@@ -1,0 +1,24 @@
+<view class="page weekly-directory">
+  <view wx:if="{{loading}}" class="muted">加载排班…</view>
+  <button wx:elif="{{error}}" class="card retry" bindtap="load">{{error}} · 点击重试</button>
+  <block wx:else>
+    <view class="card horizon">
+      <view class="horizon-row">
+        <text class="horizon-label">客户可提前</text>
+        <view class="days-field {{saving ? 'saving' : ''}}">
+          <input class="days-input" style="width:{{daysVisible.length > 2 ? daysVisible.length * 18 + 4 : 44}}rpx" type="number" maxlength="10" confirm-type="done" aria-label="可预约天数，修改后自动保存" value="{{daysVisible}}" bindinput="inputDays" bindblur="flushDays" bindconfirm="flushDays" disabled="{{saving}}"/>
+          <text class="days-unit">天</text>
+        </view>
+        <text class="horizon-label">预约</text>
+        <text class="horizon-note">（包括今天）</text>
+      </view>
+      <view wx:if="{{daysSaveError}}" class="days-feedback retry-days" bindtap="saveDays" aria-role="button" aria-label="重试保存可预约天数">{{daysFeedback}}</view>
+      <view wx:elif="{{daysFeedback}}" class="days-feedback" aria-live="polite">{{daysFeedback}}</view>
+    </view>
+    <view class="directory-head"><text class="heading">芳疗师周排班</text><view class="batch-link" bindtap="batch" aria-role="button" aria-label="批量修改芳疗师周排班">批量管理</view></view>
+    <view wx:if="{{!therapists.length}}" class="muted empty-directory">暂无在用芳疗师</view>
+    <view wx:else class="roster">
+      <therapist-card wx:for="{{therapists}}" wx:key="id" therapist="{{item}}" variant="booking" action-label="编辑周排班" bind:select="edit" />
+    </view>
+  </block>
+</view>

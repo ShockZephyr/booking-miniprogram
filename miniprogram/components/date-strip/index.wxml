@@ -1,0 +1,28 @@
+<view class="date-strip">
+  <scroll-view
+    class="date-scroll"
+    scroll-x
+    enhanced
+    scroll-with-animation
+    scroll-left="{{scrollLeft}}"
+    show-scrollbar="{{false}}"
+  >
+    <view
+      wx:for="{{visibleDates}}"
+      wx:key="date"
+      class="date-item {{item.selected ? 'active' : ''}}"
+      data-date="{{item.date}}"
+      bindtap="selectDate"
+      aria-disabled="{{locked}}"
+      aria-role="button"
+      aria-label="{{item.accessibilityLabel}}"
+    >
+      <text class="day">{{item.displayDate}}</text>
+      <text class="weekday">{{item.weekday}}</text>
+      <view wx:if="{{!hideDots && statusMap[item.date]}}" class="dot {{statusMap[item.date]}}" aria-hidden="true"></view>
+    </view>
+  </scroll-view>
+  <button class="calendar-button" disabled="{{locked}}" bindtap="openCalendar" aria-label="{{locked ? '修改预约时日期已固定' : '打开日历'}}">
+    <image class="calendar-icon" src="/assets/icons/booking-calendar.png" mode="aspectFit" aria-hidden="true"></image>
+  </button>
+</view>

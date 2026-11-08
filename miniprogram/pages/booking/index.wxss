@@ -1,0 +1,40 @@
+.date-strip-shell { background: #fff; border-bottom: 2rpx solid #e4e1e8; }
+.date-strip-inner { max-width: 520px; padding: 0 24rpx; margin: 0 auto; }
+.booking-page { min-height: 0; padding-bottom: calc(48rpx + env(safe-area-inset-bottom)); }
+.booking-page.roster-page { padding-left: 16rpx; padding-right: 16rpx; }
+.roster-heading { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin: 4rpx 8rpx 16rpx; }
+.roster-heading .section-title { margin: 0; }
+.roster { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20rpx; }
+.feedback { padding: 28rpx; }
+.feedback button { margin-top: 16rpx; }
+.filter-trigger { min-height: 44px; margin-left: auto; display: inline-flex; align-items: center; justify-content: flex-end; gap: 10rpx; color: #5c556b; font-size: 26rpx; font-weight: 600; flex-shrink: 0; }
+.filter-icon { width: 32rpx; height: 32rpx; }
+.filter-count { min-width: 32rpx; height: 32rpx; padding: 0 8rpx; border-radius: 18rpx; background: #e6e0f8; display: flex; align-items: center; justify-content: center; font-size: 20rpx; }
+.filter-drawer-wrap { position: fixed; inset: 0; z-index: 30; }
+.filter-drawer-mask { position: absolute; inset: 0; background: rgba(47,47,50,.3); }
+.filter-drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 84%; max-width: 680rpx; border-radius: 28rpx 0 0 28rpx; background: #fff; box-shadow: -16rpx 0 44rpx rgba(47,47,50,.14); display: flex; flex-direction: column; }
+.filter-drawer-header { min-height: 112rpx; padding: 20rpx 28rpx; border-bottom: 2rpx solid #efeff2; display: flex; align-items: center; justify-content: space-between; }
+.filter-drawer-title { font-size: 34rpx; font-weight: 700; }
+.filter-text-action { width: auto; min-width: 48px; min-height: 44px; margin-left: auto; padding: 8rpx 0 8rpx 16rpx; color: #5c556b; font-size: 24rpx; display: flex; align-items: center; justify-content: flex-end; text-align: right; flex-shrink: 0; }
+.filter-drawer-body { height: 0; flex: 1; min-height: 0; }
+.filter-section { padding: 26rpx 28rpx; border-bottom: 2rpx solid #efeff2; }
+.filter-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.filter-section-title { font-size: 30rpx; font-weight: 700; }
+.filter-choice-list { display: flex; flex-wrap: wrap; column-gap: 20rpx; }
+.filter-choice-list label { min-height: 48px; max-width: 100%; display: inline-flex; align-items: center; font-size: 26rpx; line-height: 1.35; }
+.filter-choice-list checkbox { flex-shrink: 0; }
+.filter-choice-list text { min-width: 0; overflow-wrap: anywhere; }
+.filter-empty { min-height: 48px; display: flex; align-items: center; color: #6f6876; font-size: 24rpx; }
+.filter-time-range { display: grid; grid-template-columns: minmax(0,1fr) 40rpx minmax(0,1fr); gap: 8rpx; align-items: center; margin-top: 12rpx; }
+.filter-time-range picker { min-width: 0; }
+.filter-picker { min-height: 48px; padding: 12rpx 14rpx; border-radius: 20rpx; background: #f5f2f9; display: flex; flex-direction: column; justify-content: center; gap: 2rpx; color: #6f6876; font-size: 22rpx; }
+.filter-picker text:last-child { color: #2f2f32; font-size: 25rpx; font-weight: 700; font-variant-numeric: tabular-nums; }
+.range-separator { color: #6f6876; text-align: center; font-size: 24rpx; }
+.filter-duration-hint { margin-top: 16rpx; color: #615967; font-size: 23rpx; line-height: 1.5; }
+.filter-drawer-footer { padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16rpx; box-shadow: 0 -10rpx 28rpx rgba(92,85,107,.06); }
+.filter-reset,.filter-confirm { width: 100% !important; min-width: 0; min-height: 48px; margin: 0 !important; border-radius: 40rpx; display: flex; align-items: center; justify-content: center; font-size: 28rpx; }
+.filter-reset { background: #efeff2; color: #5c556b; }
+.filter-confirm { background: #5c556b; color: #fff; }
+.filter-empty-result { padding: 28rpx; text-align: center; color: #615967; }
+.filter-empty-result button { margin-top: 20rpx; }
+@media (max-width: 360px) { .filter-drawer { width: 94%; } .filter-section { padding-left: 22rpx; padding-right: 22rpx; } }

@@ -1,0 +1,65 @@
+<view class="page whitelist-page">
+  <view class="page-title">会员白名单</view>
+
+  <view class="card form-card">
+    <view class="form-fields">
+      <view class="form-row">
+        <text class="field-label">{{editingReviewMember ? '测试账号' : '手机号'}}</text>
+        <text wx:if="{{editingReviewMember}}" class="member-input">审核测试会员（固定）</text>
+        <input wx:else class="member-input" data-key="phone" value="{{phone}}" bindinput="input" placeholder="手机号" placeholder-class="input-placeholder" aria-label="会员手机号" />
+      </view>
+      <view class="form-row">
+        <text class="field-label">姓名备注</text>
+        <input class="member-input" data-key="remarkName" value="{{remarkName}}" bindinput="input" placeholder="姓名备注" placeholder-class="input-placeholder" aria-label="会员姓名备注" />
+      </view>
+    </view>
+    <view class="form-actions">
+      <button wx:if="{{editingId}}" class="secondary-button cancel-edit" bindtap="cancelEdit">取消编辑</button>
+      <button class="primary-button {{editingId ? '' : 'create-member'}}" bindtap="save" loading="{{saving}}" disabled="{{saving}}">{{editingId ? '保存修改' : '新增会员'}}</button>
+    </view>
+  </view>
+
+  <view class="members-heading">成员列表</view>
+  <view class="search">
+    <view class="search-field">
+      <image class="search-field-icon" src="/assets/icons/search.png" mode="aspectFit" aria-hidden="true"></image>
+      <input data-key="keyword" value="{{keyword}}" bindinput="input" confirm-type="search" bindconfirm="search" placeholder="搜索手机号或备注" placeholder-class="input-placeholder" aria-label="搜索白名单" />
+      <button wx:if="{{keyword}}" class="search-clear" catchtap="clearSearch" aria-label="清除搜索"><view class="clear-icon" aria-hidden="true"></view></button>
+    </view>
+    <button class="search-submit" bindtap="search"><text>搜索</text><image wx:if="{{!failedActionIcons.search}}" class="action-icon" src="/assets/icons/whitelist-action-search.png" data-icon="search" binderror="actionIconError" mode="aspectFit" aria-hidden="true"></image></button>
+  </view>
+
+  <view wx:if="{{searchPending || loading}}" class="search-status">
+    <image class="search-status-icon" src="/assets/icons/search.png" mode="aspectFit" aria-hidden="true"></image>
+    <text>搜索中</text>
+  </view>
+  <block wx:else>
+    <view class="batch-row">
+      <view class="selection-summary"><text>已选 </text><text class="selection-count {{selectedIds.length ? 'has-selection' : ''}}">{{selectedIds.length}}</text><text> 个</text></view>
+      <button bindtap="batchRemove" disabled="{{!selectedIds.length || searchPending || resultsStale || loading || loadingMore}}"><text>删除</text><image wx:if="{{!failedActionIcons.delete}}" class="action-icon" src="/assets/icons/whitelist-action-delete.png" data-icon="delete" binderror="actionIconError" mode="aspectFit" aria-hidden="true"></image></button>
+    </view>
+
+    <view wx:if="{{error}}" class="state-card card error">
+      <view>{{error}}</view>
+      <button class="retry-button" bindtap="retrySearch">重试</button>
+    </view>
+    <view wx:elif="{{items.length === 0}}" class="state-card card">{{resultKeyword ? '未找到匹配成员' : '暂无白名单成员'}}</view>
+
+    <checkbox-group wx:if="{{items.length}}" bindchange="selectItems">
+      <label wx:for="{{items}}" wx:key="id" class="item card {{item.checked ? 'is-selected' : ''}}">
+        <checkbox class="member-check" value="{{item.id}}" checked="{{item.checked}}" disabled="{{item.status === 'inactive' || restoringId || searchPending || resultsStale || loading || loadingMore}}" color="#67528a" aria-label="选择{{item.remarkName || item.phone}}" />
+        <view class="item-body">
+          <view class="phone">{{item.isReviewMember ? '审核测试会员' : item.phone}}</view>
+          <view class="member-remark">{{item.remarkName || '无备注'}}</view>
+          <view wx:if="{{item.status === 'inactive'}}" class="member-remark">已移出白名单</view>
+        </view>
+        <view class="item-actions">
+          <button wx:if="{{item.isReviewMember && item.status === 'inactive'}}" class="edit-member" data-id="{{item.id}}" catchtap="restoreReviewMember" loading="{{restoringId === item.id}}" disabled="{{restoringId || searchPending || resultsStale || loading || loadingMore}}">恢复</button>
+          <button wx:else class="edit-member" data-id="{{item.id}}" catchtap="edit" disabled="{{restoringId || searchPending || resultsStale || loading || loadingMore}}" aria-label="编辑{{item.remarkName || item.phone}}"><text>编辑</text><image wx:if="{{!failedActionIcons.edit}}" class="action-icon" src="/assets/icons/whitelist-action-edit.png" data-icon="edit" binderror="actionIconError" mode="aspectFit" aria-hidden="true"></image></button>
+        </view>
+      </label>
+    </checkbox-group>
+    <view wx:if="{{loadingMore}}" class="state-card">加载中</view>
+    <button wx:elif="{{hasMore && !failedAppend}}" class="secondary-button load-more" bindtap="onReachBottom" disabled="{{searchPending || resultsStale || loading}}">加载更多</button>
+  </block>
+</view>

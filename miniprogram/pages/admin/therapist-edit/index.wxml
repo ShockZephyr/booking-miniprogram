@@ -1,0 +1,41 @@
+<view class="page edit-page">
+  <view wx:if="{{loading}}">加载中…</view>
+  <view wx:elif="{{error}}" class="card error-card">{{error}}</view>
+  <block wx:elif="{{allowed}}">
+    <view class="card form-card">
+      <view class="section-title first-title">芳疗师图片</view>
+      <view class="upload-box {{imageSrc ? 'has-image' : ''}}" bindtap="chooseImage" aria-role="button" aria-label="{{uploading ? '图片上传中' : imageSrc ? '更换芳疗师图片' : '上传芳疗师图片'}}">
+        <image wx:if="{{imageSrc}}" class="preview" src="{{imageSrc}}" mode="aspectFill" binderror="imageLoadError" aria-hidden="true" />
+        <block wx:elif="{{uploading}}"><view class="upload-title">图片上传中…</view></block>
+        <block wx:else>
+          <view class="upload-title"><text>上传图片</text><text class="upload-plus">＋</text></view>
+          <view class="upload-hint">竖版人像，JPG / PNG / WebP，最大 5MB</view>
+        </block>
+        <view wx:if="{{imageSrc && !uploading}}" class="replace-image"><text>更换图片</text><text class="upload-plus">＋</text></view>
+      </view>
+      <view wx:if="{{imageError}}" class="image-error">{{imageError}}</view>
+
+      <view class="section-title">名称</view>
+      <input class="form-input" value="{{name}}" data-field="name" bindinput="input" maxlength="40" disabled="{{saving}}" aria-label="芳疗师名称" />
+
+      <view class="section-title">{{isReviewTherapist ? '测试账号' : '手机号'}}</view>
+      <view wx:if="{{isReviewTherapist}}" class="form-input">审核测试芳疗师（不可换绑）</view>
+      <input wx:else class="form-input" value="{{phone}}" data-field="phone" bindinput="input" type="number" maxlength="11" disabled="{{saving}}" placeholder="用于系统匹配芳疗师账号，不会向用户展示" aria-label="芳疗师手机号" />
+      <view class="account-status {{accountLinked ? 'linked' : ''}}">{{accountLinked ? '已绑定芳疗师账号' : '尚未绑定账号，芳疗师登录后会自动绑定'}}</view>
+
+      <view class="section-title">擅长项目</view>
+      <checkbox-group class="project-tags" bindchange="selectTags">
+        <label wx:for="{{serviceItems}}" wx:key="id" class="project-tag {{item.checked ? 'checked' : ''}}">
+          <checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{saving || uploading}}" color="#5C556B" />
+          <text>{{item.name}}</text>
+        </label>
+      </checkbox-group>
+      <view wx:if="{{!serviceItems.length}}" class="muted">暂无项目，请先增设项目</view>
+
+      <view class="section-title">个人简介</view>
+      <textarea class="form-textarea" value="{{bio}}" data-field="bio" bindinput="input" maxlength="3000" placeholder="从业经历、护理理念与专业特长等" disabled="{{saving}}" aria-label="芳疗师个人简介" />
+    </view>
+    <button class="primary-button" bindtap="save" loading="{{saving}}" disabled="{{saving || uploading}}">保存芳疗师</button>
+    <button wx:if="{{id}}" class="delete-button" bindtap="remove" disabled="{{saving || uploading}}">删除芳疗师</button>
+  </block>
+</view>

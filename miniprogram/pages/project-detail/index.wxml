@@ -1,0 +1,17 @@
+<view class="detail-page">
+  <view wx:if="{{loading}}" class="page muted">加载中…</view>
+  <view wx:elif="{{error}}" class="page error-page" bindtap="onShow" aria-role="button" aria-label="项目详情加载失败，点击重试：{{error}}">{{error}} · 点击重试</view>
+  <block wx:elif="{{item}}">
+    <block wx:if="{{imageSource && !imageFailed}}"><image wx:for="{{imageRequests}}" wx:for-item="imageRequest" wx:key="key" class="hero" src="{{imageRequest.src}}" data-attempt="{{imageRequest.key}}" binderror="imageError" mode="widthFix" aria-label="项目{{item.name}}的图片" /></block>
+    <view wx:elif="{{imageFailed}}" class="hero placeholder image-retry" bindtap="retryImage" aria-role="button" aria-label="重新加载项目图片">
+      <view class="image-error-content">
+        <text>图片加载失败</text>
+        <view class="image-retry-label"><text>点击重试</text><image wx:if="{{!retryIconFailed}}" class="retry-icon" src="/assets/icons/image-retry.png" mode="aspectFit" binderror="retryIconError" aria-hidden="true" /></view>
+      </view>
+    </view>
+    <view wx:else class="hero placeholder">项目图片待完善</view>
+    <view class="info-card"><view class="name">{{item.name}}</view><view class="facts"><view><view class="value">{{item.durationMinutes}} 分钟</view><view class="muted">项目时长</view></view><view><view class="value">{{item.effect || '待完善'}}</view><view class="muted">项目效果</view></view><view><view class="value">{{item.priceText}}</view><view class="muted">项目价格</view></view></view></view>
+    <view class="intro-card"><view class="title">项目介绍</view><text class="description">{{item.description || '介绍待完善'}}</text></view>
+    <view wx:if="{{canBook}}" class="bottom-bar"><button class="primary-button" bindtap="book">前往预约</button></view>
+  </block>
+</view>

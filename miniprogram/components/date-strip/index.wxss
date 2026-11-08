@@ -1,0 +1,98 @@
+.date-strip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 0 20rpx;
+  width: 100%;
+}
+
+.date-scroll {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.date-item {
+  width: 52px;
+  min-height: 52px;
+  border-radius: 26rpx;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #6f6876;
+  background: #ffffff;
+  margin-right: 8rpx;
+  padding: 14rpx 0;
+}
+
+.date-item.active {
+  background: #e6e0f8;
+  color: #2f2f32;
+  font-weight: 700;
+}
+
+.day {
+  font-size: 28rpx;
+  line-height: 1.25;
+}
+
+.weekday {
+  margin-top: 8rpx;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 12rpx;
+}
+
+.dot.booked {
+  background: #e7c766;
+}
+
+.dot.cancelled {
+  background: #a04d57;
+  width: 16rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+}
+
+.dot.checked_in {
+  background: #7ea68a;
+  border-radius: 2rpx;
+}
+
+.dot.no_show {
+  background: transparent;
+  border: 2rpx solid #77717d;
+}
+
+.calendar-button {
+  flex: 0 0 52px;
+  flex-shrink: 0;
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  height: 52px;
+  min-height: 52px;
+  border-radius: 26rpx;
+  background: #fff4cf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+  padding: 0;
+  margin: 0;
+}
+
+.calendar-icon {
+  width: 52rpx;
+  height: 52rpx;
+}

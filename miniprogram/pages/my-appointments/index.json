@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "我的预约",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F2F6",
+  "usingComponents": {
+    "appointment-card": "/components/appointment-card/index",
+    "empty-state": "/components/empty-state/index",
+    "loading-state": "/components/loading-state/index"
+  }
+}

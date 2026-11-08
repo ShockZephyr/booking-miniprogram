@@ -1,0 +1,84 @@
+<view class="page weekly {{saving ? 'is-saving' : ''}}">
+  <view wx:if="{{singleId}}" class="week-head">
+    <view wx:if="{{person}}" class="schedule-profile-card">
+      <view class="profile-identity">
+        <block wx:if="{{imageSource && !imageFailed}}"><image wx:for="{{imageRequests}}" wx:for-item="imageRequest" wx:key="key" class="profile-avatar" src="{{imageRequest.src}}" data-attempt="{{imageRequest.key}}" binderror="imageError" mode="aspectFill" aria-label="芳疗师{{personName}}的照片" /></block>
+        <view wx:elif="{{imageFailed}}" class="profile-avatar profile-placeholder" bindtap="retryImage" aria-role="button" aria-label="重新加载芳疗师图片"><image wx:if="{{!retryIconFailed}}" class="retry-icon" src="/assets/icons/image-retry.png" mode="aspectFit" binderror="retryIconError" aria-hidden="true" /><text>重试</text></view>
+        <view wx:else class="profile-avatar profile-placeholder" aria-label="芳疗师暂无照片">暂无</view>
+        <text class="profile-name">{{personName}}</text>
+      </view>
+      <view class="profile-specialties">
+        <text class="specialty-label">擅长项目：</text>
+        <view class="specialty-tags">
+          <block wx:if="{{person.tags && person.tags.length}}"><text wx:for="{{person.tags}}" wx:key="*this" class="specialty-tag">{{item}}</text></block>
+          <text wx:else class="specialty-empty">暂无</text>
+        </view>
+      </view>
+    </view>
+    <view class="tabs" aria-role="group" aria-label="选择星期">
+      <button wx:for="{{weekdays}}" wx:key="value" class="tab {{selectedDays[0] === item.value ? 'active' : ''}}" data-day="{{item.value}}" data-form-version="{{formVersion}}" bindtap="pickWeekday" disabled="{{saving || !personName}}" aria-pressed="{{selectedDays[0] === item.value}}" aria-label="{{item.label}}{{item.dirty ? '，未保存' : ''}}">{{item.label}}<view wx:if="{{item.dirty}}" class="dirty-dot" aria-hidden="true" /></button>
+    </view>
+    <view wx:if="{{dirtyDays.length}}" class="week-draft-hint">{{dirtyDays.length}} 天有未保存修改，切换星期可继续编辑，请在离开前保存</view>
+    <view wx:if="{{weekNotice}}" class="week-notice" aria-role="alert">{{weekNotice}}</view>
+  </view>
+  <view wx:if="{{loading}}" class="muted">加载每周排班…</view>
+  <button class="retry" wx:elif="{{error}}" data-form-version="{{formVersion}}" bindtap="retry">{{error}} · 点击重试</button>
+  <block wx:else>
+    <block wx:if="{{!singleId}}">
+      <view class="card block">
+        <view class="row-head"><text>芳疗师</text><view class="select-all {{saving ? 'disabled' : ''}}" data-form-version="{{formVersion}}" bindtap="allPeople" aria-role="button" aria-label="全选芳疗师" aria-disabled="{{saving}}">全选</view></view>
+        <checkbox-group class="choices" data-form-version="{{formVersion}}" bindchange="selectPeople">
+          <label wx:for="{{therapists}}" wx:key="id" class="{{item.checked ? 'choice-selected' : ''}}"><checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{saving}}" color="#67528a"/>{{item.name}}</label>
+        </checkbox-group>
+        <text wx:if="{{!therapists.length}}" class="muted">暂无在用芳疗师</text>
+      </view>
+      <view class="card block">
+        <view class="row-head"><text>星期</text><view class="select-all {{saving ? 'disabled' : ''}}" data-form-version="{{formVersion}}" bindtap="allDays" aria-role="button" aria-label="全选星期" aria-disabled="{{saving}}">全选</view></view>
+        <checkbox-group class="choices" data-form-version="{{formVersion}}" bindchange="pickDays"><label wx:for="{{weekdays}}" wx:key="value" class="{{item.checked ? 'choice-selected' : ''}}"><checkbox value="{{item.value}}" checked="{{item.checked}}" disabled="{{saving}}" color="#67528a"/>{{item.label}}</label></checkbox-group>
+      </view>
+    </block>
+    <view class="card block">
+      <view class="row-head"><text>排班</text></view>
+      <view class="schedule-fields">
+        <view class="field precision-field">
+          <view class="field-label field-help" data-note="时间精度" data-form-version="{{formVersion}}" catchtap="showFieldNote" aria-role="button" aria-label="查看时间精度说明" aria-disabled="{{saving}}">
+            <text>时间精度(分钟)</text><image class="field-info-icon" src="/assets/icons/field-info.png" mode="aspectFit" aria-hidden="true" />
+          </view>
+          <radio-group class="step-options" data-form-version="{{formVersion}}" bindchange="setStep" aria-label="时间精度">
+            <label wx:for="{{stepOptions}}" wx:key="*this" class="step-option {{step === item ? 'choice-selected' : ''}}"><radio value="{{item}}" checked="{{step === item}}" disabled="{{saving}}" color="#67528a" aria-label="{{item}}分钟"/><text>{{item}}</text></label>
+          </radio-group>
+        </view>
+        <view class="field">
+          <view class="field-label field-help" data-note="最短预约时长" data-form-version="{{formVersion}}" catchtap="showFieldNote" aria-role="button" aria-label="查看最短预约时长说明" aria-disabled="{{saving}}">
+            <text>最短预约时长</text><image class="field-info-icon" src="/assets/icons/field-info.png" mode="aspectFit" aria-hidden="true" />
+          </view>
+          <view class="minimum-field">
+            <input class="minimum-input" type="number" value="{{minDuration}}" data-form-version="{{formVersion}}" bindinput="setMinimum" disabled="{{saving}}" aria-label="最短预约时长，单位分钟"/>
+            <text class="field-unit">分钟</text>
+          </view>
+        </view>
+        <view class="schedule-ranges">
+          <view class="add-row">
+            <button class="add" size="mini" data-placement="before" data-form-version="{{formVersion}}" bindtap="addRange" disabled="{{saving || (ranges.length && ranges[0].startTime === '00:00')}}" aria-label="{{ranges.length ? '在第一条排班之前添加排班' : '添加排班'}}">添加排班</button>
+          </view>
+          <view wx:if="{{!ranges.length}}" class="muted rest-label">全天休息</view>
+          <view wx:for="{{ranges}}" wx:key="key" class="range">
+            <picker range="{{times}}" value="{{item.startIndex}}" data-key="{{item.key}}" data-index="{{index}}" data-field="startTime" data-form-version="{{formVersion}}" bindchange="setTime" disabled="{{saving}}" aria-label="排班开始"><view class="value">{{item.startTime}}</view></picker>
+            <text>至</text>
+            <picker range="{{times}}" value="{{item.endIndex}}" data-key="{{item.key}}" data-index="{{index}}" data-field="endTime" data-form-version="{{formVersion}}" bindchange="setTime" disabled="{{saving}}" aria-label="排班结束"><view class="value">{{item.endTime}}</view></picker>
+            <view class="range-actions">
+              <button size="mini" class="range-button range-remove" data-key="{{item.key}}" data-index="{{index}}" data-form-version="{{formVersion}}" bindtap="removeRange" disabled="{{saving}}" aria-label="删除{{item.startTime}}至{{item.endTime}}排班">−</button>
+              <button size="mini" class="range-button range-add" data-key="{{item.key}}" data-index="{{index}}" data-form-version="{{formVersion}}" bindtap="addRange" disabled="{{saving || !item.canAddAfter}}" aria-label="在{{item.startTime}}至{{item.endTime}}之后添加排班">+</button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="card block projects-block">
+      <view class="row-head"><text>全天可约项目</text><view class="select-all {{saving || !projects.length ? 'disabled' : ''}}" data-form-version="{{formVersion}}" bindtap="allProjects" aria-role="button" aria-label="全选可约项目" aria-disabled="{{saving || !projects.length}}">全选</view></view>
+      <checkbox-group data-form-version="{{formVersion}}" bindchange="selectProjects" class="project-grid"><label wx:for="{{projects}}" wx:key="id" class="project-option {{item.wide ? 'wide' : ''}} {{item.checked ? 'choice-selected' : ''}}"><checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{saving}}" color="#67528a"/><text class="project-name">{{item.name}}</text></label></checkbox-group>
+      <text wx:if="{{!projects.length}}" class="muted">暂无在用项目</text>
+    </view>
+    <button class="primary-button" loading="{{saving}}" disabled="{{saving || (singleId && !dirtyDays.length)}}" data-form-version="{{formVersion}}" bindtap="save">{{singleId ? '保存修改' : '批量修改'}}</button>
+  </block>
+</view>

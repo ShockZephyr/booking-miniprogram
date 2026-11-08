@@ -1,0 +1,12 @@
+<view class="card history-section">
+  <view class="section-title">历史记录</view>
+  <view wx:if="{{historyUnavailable}}" class="muted">修改记录暂不可用</view>
+  <view wx:elif="{{!historyAppointments.length}}" class="muted">暂无修改记录</view>
+  <view wx:for="{{historyAppointments}}" wx:key="id" class="history-item">
+    <view class="title">记录{{historyAppointments.length - index}}</view>
+    <view>预约项目：{{item.before.serviceItemName}}</view>
+    <view>预约时段：{{item.before.date}} {{item.before.startTime}} – {{item.before.endTime}}</view>
+    <view>备注：{{item.before.note || '暂无备注'}}</view>
+    <view class="muted">修改时间：{{item.createdAt}}</view>
+  </view>
+</view>

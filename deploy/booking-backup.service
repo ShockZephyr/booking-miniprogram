@@ -1,0 +1,13 @@
+[Unit]
+Description=Booking PostgreSQL and image backup
+Requires=docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/booking/current
+ExecStart=/usr/bin/docker compose --env-file /etc/booking/compose.env -f /opt/booking/current/compose.production.yml exec -T backend npm run backup
+UMask=0077
+TimeoutStartSec=15min
+NoNewPrivileges=true
+PrivateTmp=true

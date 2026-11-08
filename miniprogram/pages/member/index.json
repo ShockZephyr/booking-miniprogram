@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "会员",
+  "usingComponents": {
+    "user-header": "/components/user-header/index"
+  }
+}
+

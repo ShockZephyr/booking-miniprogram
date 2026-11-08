@@ -1,0 +1,44 @@
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-width: 0;
+}
+
+.avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: #e6e0f8;
+  flex: 0 0 112rpx;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5c556b;
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.name {
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.phone {
+  margin-top: 8rpx;
+  color: #5c556b;
+  font-size: 24rpx;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

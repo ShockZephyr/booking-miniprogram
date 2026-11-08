@@ -1,0 +1,6 @@
+<view wx:if="{{target}}" class="date-strip-shell"><view class="date-strip-inner"><date-strip selected="{{target.date}}" first="{{first}}" last="{{last}}" locked="{{!!target.appointmentId || bookingBusy}}" statusMap="{{statusMap}}" hideDots="{{hideDots}}" bind:change="changeDate" bind:calendar="openCalendar" /></view></view>
+<view class="page">
+  <view wx:if="{{error}}" class="card message"><text>{{error}}</text><button bindtap="onShow">重试</button></view>
+  <day-schedule wx:else target="{{target}}" visible="{{visible}}" revision="{{revision}}" bind:window="windowLoaded" bind:outofwindow="resetWindow" bind:busy="bookingState" />
+</view>
+<calendar-drawer visible="{{calendarVisible}}" selected="{{target.date}}" months="{{months}}" statusMap="{{statusMap}}" hideDots="{{hideDots}}" bind:close="closeCalendar" bind:move="moveCalendar" bind:confirm="changeDate" />

@@ -1,0 +1,1 @@
+{ "navigationBarTitleText": "当日排班", "usingComponents": { "day-schedule": "/components/day-schedule/index", "date-strip": "/components/date-strip/index", "calendar-drawer": "/components/calendar-drawer/index" } }

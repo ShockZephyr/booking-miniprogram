@@ -1,0 +1,130 @@
+page {
+  min-height: 100%;
+  background: #f8f7fc;
+  color: #2f2f32;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+
+/* Type roles: display 48, page 40, section 34, card 30, body 28, label 26, meta 24rpx, micro 12px. */
+/* Color roles: plum actions, lavender selection, cream attention, sage success, rose danger. */
+
+view,
+text,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+input,
+textarea {
+  caret-color: #5c556b;
+}
+
+button {
+  padding: 0;
+  margin: 0;
+  line-height: 1.35;
+  background: transparent;
+  text-align: center;
+}
+
+button::after {
+  border: 0;
+}
+
+.page {
+  width: 100%;
+  max-width: 520px;
+  min-height: 100vh;
+  padding: 24rpx;
+  margin: 0 auto;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  box-shadow: 0 14rpx 40rpx rgba(92, 85, 107, 0.08);
+}
+
+.primary-button {
+  min-height: 48px;
+  border-radius: 46rpx;
+  background: #5c556b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.35;
+  padding: 18rpx 28rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.primary-button:active {
+  background: #494354;
+}
+
+.secondary-button {
+  min-height: 48px;
+  border-radius: 40rpx;
+  background: #fff4cf;
+  color: #5c556b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.4;
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+}
+
+.secondary-button:active {
+  background: #f1e3a9;
+}
+
+.danger-button {
+  min-height: 48px;
+  border-radius: 38rpx;
+  background: #a04d57;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.4;
+  padding: 14rpx 24rpx;
+  font-size: 28rpx;
+}
+
+.danger-button:active {
+  background: #783740;
+}
+
+button[disabled],
+.primary-button[disabled],
+.secondary-button[disabled],
+.danger-button[disabled] {
+  background: #e4e1e8 !important;
+  color: #77717d !important;
+}
+
+.muted {
+  color: #6f6876;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #2f2f32;
+  margin: 32rpx 0 20rpx;
+}
+
+@media (max-width: 340px) {
+  .page {
+    padding-left: 20rpx;
+    padding-right: 20rpx;
+  }
+}

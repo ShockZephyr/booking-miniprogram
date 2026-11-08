@@ -1,0 +1,14 @@
+{
+  "name": "wechat-booking-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native WeChat Mini Program booking app with independent Node.js backend.",
+  "scripts": {
+    "backend:install": "npm --prefix backend install",
+    "backend:start": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:test": "npm --prefix backend test",
+    "backend:migrate": "npm --prefix backend run migrate"
+  }
+}
+

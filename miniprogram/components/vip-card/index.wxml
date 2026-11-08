@@ -1,0 +1,7 @@
+<view class="vip-card" bindtap="open" aria-role="button" aria-label="查看我的会员，{{user && (user.effectiveRole === 'member' || user.effectiveRole === 'admin') ? '已开通' : '未开通'}}">
+  <view>
+    <view class="title">VIP会员</view>
+    <view class="status">{{user && (user.effectiveRole === 'member' || user.effectiveRole === 'admin') ? '已开通' : '未开通'}}</view>
+  </view>
+  <view class="link">我的会员 ></view>
+</view>

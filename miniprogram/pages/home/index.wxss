@@ -1,0 +1,224 @@
+.home {
+  width: 100%;
+  max-width: 520px;
+  min-height: 100vh;
+  background: #f8f7fc;
+  padding-bottom: 40rpx;
+  margin: 0 auto;
+}
+.unread-banner { display:flex; align-items:center; justify-content:space-between; gap:20rpx; min-height:48px; padding:16rpx 32rpx; box-sizing:border-box; background:#ffffff; border-bottom:2rpx solid #e8e4ef; color:#5c556b; }
+.unread-banner-content { display:flex; flex-wrap:wrap; column-gap:24rpx; row-gap:6rpx; min-width:0; font-size:26rpx; line-height:1.5; }
+.unread-created-count { color:#39734b; }
+.unread-banner-chevron { flex:none; width:12rpx; height:12rpx; border-top:3rpx solid currentColor; border-right:3rpx solid currentColor; transform:rotate(45deg); }
+.unread-banner-pressed { background:#f1edf7; }
+.unread-opening { opacity:.65; }
+.therapist-section { margin:0 24rpx 28rpx; padding:28rpx 24rpx 24rpx; overflow:hidden; }
+.therapist-heading { display:flex; align-items:center; justify-content:space-between; gap:20rpx; min-height:48px; font-size:34rpx; line-height:1.35; font-weight:700; margin-bottom:16rpx; }
+.therapist-heading > text:first-child { min-width:0; overflow-wrap:anywhere; }
+.all-link { align-self:stretch; flex:0 0 auto; min-height:48px; display:flex; align-items:center; font-size:24rpx; line-height:1.4; font-weight:400; color:#6f6876; padding:0 0 0 24rpx; white-space:nowrap; }
+.therapist-scroll { width:100%; white-space:nowrap; }
+.project-list { display:flex; flex-direction:column; gap:18rpx; }
+.therapist-slide { width:290rpx; display:inline-block; margin-right:20rpx; vertical-align:top; white-space:normal; }
+
+.hero {
+  height: 37vh;
+  min-height: 400rpx;
+  max-height: 560rpx;
+}
+
+.banner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 80rpx 44rpx 150rpx;
+  background: #e6e0f8;
+}
+
+.banner-1 {
+  background: #fff4cf;
+}
+
+.banner-2 {
+  background: #e5f0e7;
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.banner-title {
+  font-size: 48rpx;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #5c556b;
+  overflow-wrap: anywhere;
+}
+
+.banner-subtitle {
+  font-size: 28rpx;
+  line-height: 1.55;
+  color: #5c556b;
+  overflow-wrap: anywhere;
+}
+
+.venue-card {
+  margin: -72rpx 24rpx 0;
+  padding: 34rpx;
+  position: relative;
+  z-index: 2;
+  min-height: 230rpx;
+}
+
+.venue-main {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+.venue-info {
+  min-width: 0;
+}
+
+.venue-title {
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #433451;
+}
+
+.address-row {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  color: #5c556b;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+
+.address-text {
+  display: inline;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  margin-left: 8rpx;
+  color: #6f6876;
+  vertical-align: baseline;
+}
+
+.venue-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.venue-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.icon-button {
+  width: 48px !important;
+  min-width: 48px;
+  max-width: 48px;
+  height: 48px !important;
+  min-height: 48px;
+  max-height: 48px;
+  flex: 0 0 48px;
+  border-radius: 24px;
+  background: #f0ebf7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 48px;
+}
+
+.contact-button { background: #e5f0e7; }
+.icon-button:active { background: #e2d7f0; }
+.contact-button:active { background: #cfdfd3; }
+
+.action-icon {
+  width: 38rpx;
+  height: 38rpx;
+}
+
+.quick-grid {
+  padding: 28rpx 24rpx;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18rpx;
+}
+
+.quick-grid.admin {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.quick-item {
+  min-height: 154rpx;
+  padding: 18rpx 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: #2f2f32;
+  border: 1rpx solid transparent;
+  box-shadow: 0 12rpx 28rpx rgba(92, 85, 107, 0.07);
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.quick-icon {
+  width: 82rpx;
+  height: 82rpx;
+}
+
+.quick-lavender {
+  background: #ffffff;
+}
+
+.quick-sage {
+  background: #ffffff;
+}
+
+.quick-amber {
+  background: #ffffff;
+}
+
+.quick-rose {
+  background: #ffffff;
+}
+
+.quick-item-pressed {
+  opacity: 0.82;
+  transform: scale(0.98);
+}
+
+@media (max-width: 340px) {
+  .quick-grid,
+  .quick-grid.admin {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .venue-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12rpx;
+  }
+
+  .venue-actions {
+    align-self: flex-end;
+  }
+}

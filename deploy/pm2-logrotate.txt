@@ -1,0 +1,10 @@
+# Run as the same OS account that owns the booking PM2 process.
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 10M
+pm2 set pm2-logrotate:retain 186
+pm2 set pm2-logrotate:compress true
+pm2 set pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss
+pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
+pm2 set pm2-logrotate:TZ Asia/Shanghai
+# Pino application/error/audit files are rotated by the application itself.
+# PM2 output is supplemental and is not the primary security log.

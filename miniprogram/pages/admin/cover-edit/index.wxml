@@ -1,0 +1,14 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="muted">加载中…</view>
+  <view wx:elif="{{error}}" class="panel card" aria-live="polite"><text>{{error}}</text><button class="secondary-button" data-version="{{version}}" bindtap="reload">重新加载</button></view>
+  <view wx:else class="panel card">
+    <view class="title">封面图片</view>
+    <view wx:if="{{imageSrc}}" class="preview"><home-cover-image src="{{imageSrc}}" label="封面预览" /></view>
+    <view wx:else class="preview empty" data-version="{{version}}" bindtap="choose" aria-role="button"><text class="plus">＋</text><text>选择图片</text></view>
+    <view class="hint">建议使用横图，支持 JPG、PNG、WebP，最大 5 MB。</view>
+    <view wx:if="{{saveHint}}" class="hint" aria-live="polite">{{saveHint}}</view>
+    <button wx:if="{{imageSrc}}" class="secondary-button" data-version="{{version}}" bindtap="choose" disabled="{{saving || uncertain}}">更换图片</button>
+    <button class="primary-button" data-version="{{version}}" bindtap="save" loading="{{saving}}" disabled="{{saving || !filePath}}">保存封面</button>
+    <button wx:if="{{id}}" class="danger-button remove" data-version="{{version}}" bindtap="remove" disabled="{{saving || uncertain}}">删除封面</button>
+  </view>
+</view>

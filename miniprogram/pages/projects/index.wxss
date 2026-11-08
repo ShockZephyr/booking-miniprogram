@@ -1,0 +1,45 @@
+.catalog { width:100%; max-width:520px; height:100vh; display:flex; flex-direction:column; margin:0 auto; }
+.manage-toolbar { min-height:88rpx; padding:8rpx 24rpx 0; background:#fff; border-top:1rpx solid #e4e1e8; display:flex; align-items:center; justify-content:flex-end; }
+.recycle-entry { min-height:48px; padding:8rpx 0 8rpx 20rpx; display:flex; align-items:center; justify-content:flex-end; gap:10rpx; color:#5c556b; font-size:26rpx; font-weight:600; }
+.recycle-icon { width:32rpx; height:32rpx; display:block; }
+.hint { padding:22rpx 28rpx; color:#6f6876; font-size:24rpx; line-height:1.5; overflow-wrap:anywhere; }
+.list-scroll { flex:1; min-height:0; height:0; }
+.list-content { padding:16rpx 24rpx 24rpx; }
+.project-row { min-height:220rpx; box-sizing:border-box; padding-bottom:20rpx; }
+.project-row.manage { display:grid; grid-template-columns:minmax(0,1fr) 72rpx; align-items:center; gap:10rpx; }
+.card-wrap { flex:1; min-width:0; }
+.reorder-controls { width:72rpx; min-width:0; min-height:176rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8rpx; box-sizing:border-box; }
+.drag-handle { width:56rpx; height:36rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6rpx; }
+.drag-handle view { width:34rpx; height:3rpx; border-radius:3rpx; background:#8b8493; }
+.reorder-button { position:relative; width:60rpx; min-width:60rpx; max-width:60rpx; height:60rpx; min-height:60rpx; max-height:60rpx; flex:0 0 60rpx; background:transparent; display:flex; align-items:center; justify-content:center; }
+/* Stay inside empty gaps: do not cover the drag handle, card, or next arrow.
+   Use rpx with the surrounding layout instead of forcing a 48px target. */
+.reorder-hit { position:absolute; left:-6rpx; right:-14rpx; top:-4rpx; bottom:-2rpx; z-index:1; }
+.reorder-button.disabled { opacity:.32; }
+.reorder-icon { width:28rpx; height:28rpx; display:block; }
+.dragging { opacity:.72; background:#e6e0f8; border-radius:22rpx; box-shadow:0 10rpx 28rpx rgba(92,85,107,.14); }
+.success { color:#365f45; background:#e5f0e7; }
+.error { color:#7d343b; background:#fff0f0; }
+.footer { padding:18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom)); background:#fff; }
+
+@media (max-width: 340px) {
+  .project-row.manage {
+    grid-template-columns: minmax(0, 1fr) 64rpx;
+    gap: 6rpx;
+  }
+
+  .reorder-controls {
+    width: 64rpx;
+  }
+
+  .reorder-button {
+    width: 56rpx;
+    min-width: 56rpx;
+    max-width: 56rpx;
+    height: 56rpx;
+    min-height: 56rpx;
+    max-height: 56rpx;
+    flex-basis: 56rpx;
+  }
+
+}

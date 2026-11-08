@@ -1,0 +1,55 @@
+<view class="date-strip-shell">
+  <view class="date-strip-inner">
+    <date-strip selected="{{selectedDate}}" first="{{first}}" last="{{last}}" statusMap="{{statusMap}}" hideDots="{{isAdmin || isTherapist}}" bind:change="changeDate" bind:calendar="openCalendar" />
+  </view>
+</view>
+<view class="page booking-page {{!isTherapist ? 'roster-page' : ''}}">
+  <view wx:if="{{!isTherapist}}" class="roster-heading">
+    <view class="section-title">选择芳疗师</view>
+    <view class="filter-trigger" bindtap="openFilterDrawer" aria-role="button" aria-disabled="{{loading || !filterReady || error}}" aria-label="打开筛选方式{{activeFilterCount ? '，已启用' + activeFilterCount + '类筛选' : ''}}">
+      <image class="filter-icon" src="/assets/icons/filter.png" mode="aspectFit" aria-hidden="true" /><text>筛选方式</text>
+      <text wx:if="{{activeFilterCount}}" class="filter-count">{{activeFilterCount}}</text>
+    </view>
+  </view>
+  <loading-state wx:if="{{loading}}" text="正在加载排班" />
+  <view wx:elif="{{error}}" class="card feedback"><text>{{error}}</text><button class="secondary-button" bindtap="loadDay">重试</button><button wx:if="{{activeFilterCount}}" class="secondary-button" data-filter-version="{{filterVersion}}" bindtap="clearRosterFilters">清除筛选</button></view>
+  <day-schedule wx:elif="{{isTherapist}}" target="{{target}}" visible="{{visible}}" revision="{{revision}}" bind:window="windowLoaded" bind:outofwindow="resetWindow" />
+  <block wx:else>
+    <view wx:if="{{!therapists.length && activeFilterCount}}" class="card filter-empty-result"><text>暂无符合条件的芳疗师</text><button class="secondary-button" data-filter-version="{{filterVersion}}" bindtap="clearRosterFilters">清除筛选</button></view>
+    <empty-state wx:elif="{{!therapists.length}}" text="暂无在用芳疗师" />
+    <view wx:else class="roster">
+      <therapist-card wx:for="{{therapists}}" wx:key="id" therapist="{{item}}" variant="booking" action-label="查看当日排班" bind:select="openDay" />
+    </view>
+  </block>
+</view>
+<calendar-drawer visible="{{calendarVisible}}" selected="{{selectedDate}}" months="{{months}}" statusMap="{{statusMap}}" hideDots="{{isAdmin || isTherapist}}" bind:move="moveCalendar" bind:close="closeCalendar" bind:confirm="changeDate" />
+<view wx:if="{{filterDrawerVisible}}" class="filter-drawer-wrap">
+  <view class="filter-drawer-mask" data-filter-version="{{filterVersion}}" bindtap="closeFilterDrawer" catchtouchmove="noop" aria-hidden="true" />
+  <view class="filter-drawer" catchtap="noop" aria-role="dialog" aria-modal="true" aria-label="筛选方式">
+    <view class="filter-drawer-header"><text class="filter-drawer-title">筛选方式</text><view class="filter-text-action" data-filter-version="{{filterVersion}}" bindtap="closeFilterDrawer" aria-role="button">关闭</view></view>
+    <scroll-view class="filter-drawer-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="filter-section">
+        <view class="filter-section-head"><text class="filter-section-title">项目</text><view class="filter-text-action" data-filter-version="{{filterVersion}}" data-kind="projects" data-all="true" bindtap="selectRosterOptions" aria-role="button" aria-label="勾选全部项目">全部</view></view>
+        <checkbox-group class="filter-choice-list" data-filter-version="{{filterVersion}}" data-kind="projects" bindchange="selectRosterOptions">
+          <label wx:for="{{filterProjects}}" wx:key="id"><checkbox value="{{item.id}}" checked="{{item.checked}}" color="#5c556b"/><text>{{item.name}}</text></label>
+        </checkbox-group><view wx:if="{{!filterProjects.length}}" class="filter-empty">暂无项目</view>
+      </view>
+      <view class="filter-section">
+        <view class="filter-section-head"><text class="filter-section-title">芳疗师</text><view class="filter-text-action" data-filter-version="{{filterVersion}}" data-kind="therapists" data-all="true" bindtap="selectRosterOptions" aria-role="button" aria-label="勾选全部芳疗师">全部</view></view>
+        <checkbox-group class="filter-choice-list" data-filter-version="{{filterVersion}}" data-kind="therapists" bindchange="selectRosterOptions">
+          <label wx:for="{{filterTherapists}}" wx:key="id"><checkbox value="{{item.id}}" checked="{{item.checked}}" color="#5c556b"/><text>{{item.name}}</text></label>
+        </checkbox-group><view wx:if="{{!filterTherapists.length}}" class="filter-empty">暂无芳疗师</view>
+      </view>
+      <view class="filter-section">
+        <view class="filter-section-head"><text class="filter-section-title">时间</text><view class="filter-text-action" data-filter-version="{{filterVersion}}" bindtap="useRosterAllTimes" aria-role="button">全部时间</view></view>
+        <view class="filter-time-range">
+          <picker mode="selector" range="{{startTimeRange}}" value="{{draftStartPickerValue}}" data-filter-version="{{filterVersion}}" data-field="startTime" bindchange="inputRosterTime" aria-label="筛选开始时间"><view class="filter-picker"><text>开始</text><text>{{draftFilters.startTime}}</text></view></picker>
+          <text class="range-separator">至</text>
+          <picker mode="selector" range="{{endTimeRange}}" value="{{draftEndPickerValue}}" data-filter-version="{{filterVersion}}" data-field="endTime" bindchange="inputRosterTime" aria-label="筛选结束时间"><view class="filter-picker"><text>结束</text><text>{{draftFilters.endTime}}</text></view></picker>
+        </view>
+        <view class="filter-duration-hint" aria-live="polite">{{draftMinimum ? '筛选范围至少' + draftMinimum + '分钟，按各芳疗师排班匹配' : '暂无符合项目和芳疗师条件的排班'}}</view>
+      </view>
+    </scroll-view>
+    <view class="filter-drawer-footer"><button class="filter-reset" data-filter-version="{{filterVersion}}" bindtap="resetRosterDraft">重置</button><button class="filter-confirm" data-filter-version="{{filterVersion}}" bindtap="confirmRosterFilters">确定</button></view>
+  </view>
+</view>

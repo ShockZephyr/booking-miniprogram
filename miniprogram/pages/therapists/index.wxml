@@ -1,0 +1,19 @@
+<view class="page therapists-page">
+  <view class="title-row">
+    <view class="page-title">场馆芳疗师</view>
+    <view wx:if="{{manage}}" class="recycle-entry" bindtap="openRecycleBin" aria-role="button" aria-label="打开芳疗师回收站">
+      <image class="recycle-icon" src="/assets/icons/recycle-bin.png" mode="aspectFit" aria-hidden="true" />
+      <text>回收站</text>
+    </view>
+  </view>
+  <view wx:if="{{loading}}" class="muted">加载中…</view>
+  <view wx:elif="{{error}}" class="card error-card" bindtap="onShow" aria-role="button" aria-label="芳疗师加载失败，点击重试：{{error}}">{{error}} · 点击重试</view>
+  <block wx:else>
+    <view wx:if="{{!therapists.length && !manage}}" class="card">暂无芳疗师</view>
+    <view class="therapist-grid">
+      <therapist-card wx:for="{{therapists}}" wx:key="id" therapist="{{item}}" selected="{{selectedId === item.id}}" action-label="{{manage ? '选择芳疗师' : '查看芳疗师'}}" bind:select="select" />
+      <view wx:if="{{manage}}" class="add-card" bindtap="add" aria-role="button" aria-label="新增芳疗师"><text class="plus" aria-hidden="true">＋</text><text>新增芳疗师</text></view>
+    </view>
+  </block>
+  <view wx:if="{{manage && selectedId}}" class="bottom-bar"><button class="primary-button" bindtap="edit">编辑芳疗师</button></view>
+</view>

@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "预约",
+  "usingComponents": {
+    "date-strip": "/components/date-strip/index", "calendar-drawer": "/components/calendar-drawer/index",
+    "day-schedule": "/components/day-schedule/index", "empty-state": "/components/empty-state/index", "loading-state": "/components/loading-state/index",
+    "therapist-card": "/components/therapist-card/index"
+  }
+}

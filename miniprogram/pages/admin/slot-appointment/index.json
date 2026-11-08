@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "管理预约",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/index",
+    "loading-state": "/components/loading-state/index",
+    "appointment-card": "/components/appointment-card/index"
+  }
+}

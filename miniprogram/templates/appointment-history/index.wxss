@@ -1,0 +1,4 @@
+.history-section { padding:28rpx; margin-bottom:24rpx; }
+.history-section .section-title { margin:0 0 20rpx; }
+.history-item { border-top:2rpx solid #efeff2; padding:18rpx 0; overflow-wrap:anywhere; }
+.history-item .title { font-size:30rpx; font-weight:700; line-height:1.35; }

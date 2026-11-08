@@ -1,0 +1,29 @@
+.recycle-page { padding-bottom:calc(132rpx + env(safe-area-inset-bottom)); }
+.selection-toolbar { min-height:72rpx; margin:-8rpx 0 12rpx; display:flex; align-items:center; justify-content:space-between; gap:20rpx; }
+.selection-summary { color:#6f6876; font-size:24rpx; }
+.retention-hint { margin:-4rpx 0 20rpx; color:#8b6f45; font-size:24rpx; line-height:1.45; }
+.select-all { min-width:48px; min-height:48px; padding:8rpx 0 8rpx 20rpx; color:#5c556b; display:flex; align-items:center; justify-content:flex-end; font-size:26rpx; font-weight:600; }
+.select-all.disabled { color:#aaa5ae; }
+.state-text { padding:56rpx 24rpx; text-align:center; color:#6f6876; }
+.state-text.error { color:#7d343b; }
+.empty-card { padding:64rpx 24rpx; text-align:center; color:#6f6876; }
+.recycle-list { display:flex; flex-direction:column; gap:18rpx; }
+.recycle-card { min-height:176rpx; padding:18rpx; border:4rpx solid transparent; border-radius:24rpx; background:#fff; box-shadow:0 10rpx 30rpx rgba(92,85,107,.07); display:grid; grid-template-columns:48rpx 140rpx minmax(0,1fr); align-items:center; gap:18rpx; }
+.recycle-card.selected { border-color:#6f5a82; background:#fbf9fd; }
+.select-box { align-self:start; margin-top:8rpx; }
+.item-image { width:140rpx; height:140rpx; border-radius:18rpx; background:#eae5f1; }
+.placeholder { display:flex; align-items:center; justify-content:center; color:#6f6876; font-size:22rpx; text-align:center; }
+.item-info { min-width:0; }
+.item-name { color:#2f2f32; font-size:30rpx; line-height:1.4; font-weight:700; overflow-wrap:anywhere; }
+.item-secondary { margin-top:8rpx; color:#6f6876; font-size:24rpx; line-height:1.45; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+.item-meta { margin-top:12rpx; color:#5c556b; font-size:24rpx; display:flex; flex-wrap:wrap; justify-content:space-between; gap:8rpx 16rpx; }
+.tag-list { min-height:40rpx; margin-top:12rpx; display:flex; flex-wrap:wrap; gap:8rpx; overflow:hidden; }
+.tag-list text { padding:5rpx 10rpx; border-radius:12rpx; background:#f1edf7; color:#6f5a82; font-size:22rpx; }
+.restore-bar { position:fixed; z-index:6; left:0; right:0; bottom:0; padding:16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom)); background:#fff; box-shadow:0 -10rpx 28rpx rgba(92,85,107,.06); }
+.footer-actions { width:100%; max-width:520px; margin:0 auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16rpx; }
+.footer-actions button { width:100%; }
+
+@media (max-width:340px) {
+  .recycle-card { grid-template-columns:44rpx 112rpx minmax(0,1fr); gap:12rpx; padding:14rpx; }
+  .item-image { width:112rpx; height:112rpx; }
+}

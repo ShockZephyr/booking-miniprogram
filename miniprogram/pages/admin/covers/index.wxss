@@ -1,0 +1,11 @@
+.heading { display: flex; align-items: center; justify-content: space-between; margin: 16rpx 0 8rpx; }
+.title { font-size: 38rpx; font-weight: 700; }
+.count, .guide { font-size: 25rpx; color: #6f6876; }
+.guide { margin-bottom: 22rpx; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20rpx; }
+.tile { position: relative; height: 208rpx; overflow: hidden; border-radius: 22rpx; background: #ece8f0; }
+.badge { position: absolute; left: 12rpx; bottom: 12rpx; border-radius: 20rpx; padding: 0 12rpx; color: white; background: rgba(35,30,39,.72); font-size: 22rpx; }
+.moving { opacity: .72; outline: 4rpx solid #8976a5; }
+.add { border: 2rpx dashed #a395af; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #655674; background: #f1edf7; font-size: 26rpx; }
+.plus { font-size: 54rpx; line-height: 1.1; }
+.notice { padding: 24rpx; color: #793e44; }

@@ -1,0 +1,14 @@
+<view class="therapist-card {{variant === 'booking' ? 'booking' : ''}} {{selected ? 'selected' : ''}}" bindtap="tap" hover-class="card-pressed" hover-stay-time="80" aria-role="button" aria-label="{{actionLabel}}：{{therapist.name}}{{variant === 'booking' && therapist.label ? '，' + therapist.label : ''}}{{selected ? '，已选择' : ''}}">
+  <block wx:if="{{imageSource && !imageFailed}}"><image wx:for="{{imageRequests}}" wx:for-item="imageRequest" wx:key="key" class="portrait" src="{{imageRequest.src}}" data-attempt="{{imageRequest.key}}" binderror="imageError" mode="aspectFill" lazy-load="{{true}}" aria-hidden="true" /></block>
+  <view wx:elif="{{imageFailed}}" class="portrait placeholder" catchtap="retryImage" aria-role="button" aria-label="重新加载{{therapist.name}}的图片"><text>{{variant === 'booking' ? '加载失败' : '图片加载失败'}}</text><view class="image-retry-label"><text>点击重试</text><image wx:if="{{!retryIconFailed}}" class="retry-icon" src="/assets/icons/image-retry.png" mode="aspectFit" binderror="retryIconError" aria-hidden="true" /></view></view>
+  <view wx:else class="portrait placeholder" aria-hidden="true">芳疗师图片</view>
+  <view class="info">
+    <block wx:if="{{variant === 'booking'}}">
+      <view class="booking-heading"><view class="name">{{therapist.name}}</view><block wx:if="{{therapist.label}}"><text class="status-divider" aria-hidden="true">·</text><view class="availability {{therapist.status}}">{{therapist.label}}</view></block></view>
+      <view class="bio">{{bioPreview || '暂无简介'}}</view>
+      <view class="tags booking-tags"><text wx:for="{{therapist.tags}}" wx:key="*this" wx:if="{{index < 2}}">{{item}}</text></view>
+    </block>
+    <block wx:else><view class="name">{{therapist.name}}</view><view class="tags"><text wx:for="{{therapist.tags}}" wx:key="*this" wx:if="{{index < 2}}">{{item}}</text></view></block>
+  </view>
+  <image wx:if="{{variant === 'booking'}}" class="chevron" src="/assets/icons/chevron-left.png" mode="aspectFit" aria-hidden="true" />
+</view>

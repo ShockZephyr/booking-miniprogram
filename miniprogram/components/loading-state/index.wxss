@@ -1,0 +1,23 @@
+.loading {
+  min-height: 260rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6f6876;
+  font-size: 28rpx;
+  line-height: 1.55;
+  text-align: center;
+  padding: 32rpx;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.spinner {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 6rpx solid #efeff2;
+  border-top-color: #5c556b;
+  margin-bottom: 20rpx;
+}

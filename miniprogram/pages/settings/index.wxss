@@ -1,0 +1,75 @@
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.settings-page > view,
+.settings-page > button {
+  flex-shrink: 0;
+}
+
+.profile {
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.list {
+  overflow: hidden;
+}
+
+.row {
+  min-height: 48px;
+  padding: 20rpx 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1rpx solid #efeff2;
+  font-size: 28rpx;
+  line-height: 1.5;
+  gap: 20rpx;
+  overflow-wrap: anywhere;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.logout {
+  margin-top: 48rpx;
+}
+
+.legal-footer {
+  margin-top: auto;
+  padding-top: 64rpx;
+  text-align: center;
+  color: #6f6876;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.legal-line + .legal-line {
+  margin-top: 8rpx;
+}
+
+.settings-page .icp-link {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 8rpx 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 0;
+  color: #5c556b;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: inherit;
+}
+
+.icp-number {
+  text-decoration: underline;
+}

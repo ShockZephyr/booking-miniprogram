@@ -1,0 +1,17 @@
+<view class="page member-page">
+  <view wx:if="{{!user}}" class="member-card card">
+    <view class="title">请先登录</view>
+    <view class="muted">登录后查看会员状态</view>
+    <button class="primary-button" bindtap="login">去登录</button>
+  </view>
+
+  <view wx:elif="{{user.effectiveRole === 'member' || user.effectiveRole === 'admin'}}" class="vip-detail card">
+    <user-header user="{{user}}" />
+    <view class="vip-label">VIP会员</view>
+  </view>
+
+  <view wx:else class="member-card card">
+    <view class="title">您还不是会员</view>
+    <button class="primary-button" bindtap="callBusiness">电话办理 {{business.phone}}</button>
+  </view>
+</view>

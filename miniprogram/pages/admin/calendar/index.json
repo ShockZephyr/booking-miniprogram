@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "管理排班",
+  "usingComponents": {
+    "therapist-card": "/components/therapist-card/index"
+  }
+}

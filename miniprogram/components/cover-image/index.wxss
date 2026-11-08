@@ -1,0 +1,3 @@
+:host, .photo, .fallback { display: block; width: 100%; height: 100%; }
+.fallback { display: flex; align-items: center; justify-content: center; background: #f1edf6; }
+.retry { padding: 12rpx; text-align: center; color: #5c556b; font-size: 24rpx; }

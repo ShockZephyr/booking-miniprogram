@@ -1,0 +1,49 @@
+<view class="page recycle-page">
+  <view class="selection-toolbar">
+    <text class="selection-summary">{{items.length ? '共 ' + items.length + ' 项' : ''}}</text>
+    <view
+      class="select-all {{!items.length || saving ? 'disabled' : ''}}"
+      bindtap="toggleAll"
+      aria-role="button"
+      aria-disabled="{{!items.length || saving}}"
+      aria-label="{{allSelected ? '取消全选' : '全选全部' + noun}}"
+    >{{allSelected ? '取消全选' : '全选'}}</view>
+  </view>
+  <view class="retention-hint">进入回收站满 {{retentionDays}} 天后将自动永久删除</view>
+
+  <view wx:if="{{loading}}" class="state-text">加载中…</view>
+  <view wx:elif="{{error}}" class="state-text error" bindtap="load" aria-role="button" aria-label="{{error}}，点击重试">{{error}} · 点击重试</view>
+  <view wx:elif="{{!items.length}}" class="empty-card card">回收站为空</view>
+
+  <checkbox-group wx:else class="recycle-list" bindchange="selectItems">
+    <label wx:for="{{items}}" wx:key="id" class="recycle-card {{item.selected ? 'selected' : ''}}">
+      <checkbox class="select-box" value="{{item.id}}" checked="{{item.selected}}" color="#5c556b" />
+      <image wx:if="{{item.imageSrc}}" class="item-image" src="{{item.imageSrc}}" mode="aspectFill" lazy-load="{{true}}" aria-hidden="true" />
+      <view wx:else class="item-image placeholder" aria-hidden="true">{{noun}}图片</view>
+      <view class="item-info">
+        <view class="item-name">{{item.name}}</view>
+        <block wx:if="{{type === 'project'}}">
+          <view class="item-secondary">{{item.effect || '效果待完善'}}</view>
+          <view class="item-meta"><text>{{item.durationMinutes}} 分钟</text><text>{{item.priceText}}</text></view>
+        </block>
+        <block wx:else>
+          <view class="item-secondary">{{item.bio || '暂无个人简介'}}</view>
+          <view class="tag-list">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" wx:if="{{index < 3}}">{{tag}}</text>
+          </view>
+        </block>
+      </view>
+    </label>
+  </checkbox-group>
+
+  <view class="restore-bar">
+    <view class="footer-actions">
+      <button class="primary-button" bindtap="restoreSelected" loading="{{savingAction === 'restore'}}" disabled="{{saving || !selectedIds.length}}">
+        一键恢复
+      </button>
+      <button class="danger-button" bindtap="purgeSelected" loading="{{savingAction === 'purge'}}" disabled="{{saving || !selectedIds.length}}">
+        永久删除
+      </button>
+    </view>
+  </view>
+</view>

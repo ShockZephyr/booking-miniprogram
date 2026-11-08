@@ -1,0 +1,108 @@
+<view class="page mine-page">
+  <view wx:if="{{!user}}" class="login-card card">
+    <view class="login-title">欢迎使用预约服务</view>
+    <view class="muted">手机号用于登录和查询会员资格</view>
+    <button class="primary-button login-button" open-type="getPhoneNumber" bindgetphonenumber="handlePhoneLogin" loading="{{loggingIn}}">
+      手机号快捷登录
+    </button>
+    <view wx:if="{{showReviewLogin}}" class="mock-panel">
+      <view class="mock-title">测试登录</view>
+      <input class="mock-input" value="{{reviewCode}}" bindinput="inputReviewCode" password="{{true}}" maxlength="128" disabled="{{loggingIn}}" placeholder="输入私有审核码" aria-label="私有审核码" />
+      <view class="mock-actions">
+        <button class="secondary-button" bindtap="reviewUserLogin" disabled="{{loggingIn}}" loading="{{loggingIn}}">普通登录</button>
+        <button class="secondary-button therapist-login" bindtap="reviewTherapistLogin" disabled="{{loggingIn}}" loading="{{loggingIn}}">芳疗师登录</button>
+        <button class="secondary-button admin-login" bindtap="reviewAdminLogin" disabled="{{loggingIn}}" loading="{{loggingIn}}">管理员登录</button>
+      </view>
+    </view>
+    <view wx:if="{{showTestLogin}}" class="mock-panel">
+      <view class="mock-title">测试登录</view>
+      <input class="mock-input" value="{{mockPhone}}" bindinput="inputMockPhone" type="number" maxlength="11" placeholder="输入普通用户模拟手机号" aria-label="测试登录手机号" />
+      <view class="mock-actions">
+        <button class="secondary-button" bindtap="mockUserLogin" loading="{{loggingIn}}">普通登录</button>
+        <button class="secondary-button admin-login" bindtap="mockAdminLogin" loading="{{loggingIn}}">管理员登录</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else>
+    <view class="profile card">
+      <user-header user="{{user}}" />
+      <button class="settings" bindtap="openSettings" aria-label="设置">
+        <image class="settings-icon" src="/assets/icons/settings.png" mode="aspectFit" aria-hidden="true"></image>
+      </button>
+    </view>
+
+    <view wx:if="{{user.role === 'admin'}}">
+      <view class="section-title">全部预约</view>
+      <view class="appointment-grid">
+        <view
+          wx:for="{{appointmentEntries}}"
+          wx:key="status"
+          class="entry card"
+          data-status="{{item.status}}"
+          bindtap="openAppointments"
+          aria-role="button"
+          aria-label="查看{{item.text}}预约"
+        >
+          <image class="entry-icon" src="{{item.iconPath}}" mode="aspectFit" aria-hidden="true"></image>
+          <text>{{item.text}}</text>
+        </view>
+      </view>
+
+      <view class="section-title">管理功能</view>
+      <view class="admin-grid">
+        <view
+          wx:for="{{adminEntries}}"
+          wx:key="page"
+          class="entry card"
+          data-page="{{item.page}}"
+          bindtap="openAdmin"
+          aria-role="button"
+          aria-label="{{item.text}}"
+        >
+          <image class="entry-icon" src="{{item.iconPath}}" mode="aspectFit" aria-hidden="true"></image>
+          <text>{{item.text}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{user.therapistId}}">
+
+      <view class="section-title">客户预约</view>
+      <view class="appointment-grid">
+        <view
+          wx:for="{{appointmentEntries}}"
+          wx:key="status"
+          class="entry card"
+          data-status="{{item.status}}"
+          bindtap="openTherapistAppointments"
+          aria-role="button"
+          aria-label="查看{{item.text}}客户预约"
+        >
+          <image class="entry-icon" src="{{item.iconPath}}" mode="aspectFit" aria-hidden="true"></image>
+          <text>{{item.text}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else>
+      <vip-card user="{{user}}" />
+
+      <view class="section-title">我的预约</view>
+      <view class="appointment-grid">
+      <view
+        wx:for="{{appointmentEntries}}"
+        wx:key="status"
+        class="entry card"
+        data-status="{{item.status}}"
+        bindtap="openAppointments"
+        aria-role="button"
+        aria-label="查看{{item.text}}预约"
+      >
+        <image class="entry-icon" src="{{item.iconPath}}" mode="aspectFit" aria-hidden="true"></image>
+        <text>{{item.text}}</text>
+      </view>
+      </view>
+    </view>
+  </view>
+</view>

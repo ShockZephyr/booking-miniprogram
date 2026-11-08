@@ -1,0 +1,24 @@
+.form-card { padding:30rpx; margin-bottom:28rpx; }
+.section-title { font-size:30rpx; line-height:1.4; font-weight:600; margin:32rpx 0 18rpx; }
+.first-title { margin-top:0; }
+.upload-box { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:224rpx; overflow:hidden; box-sizing:border-box; border:2rpx dashed #8f7aa3; border-radius:18rpx; background:#f8f7fc; color:#2f2f32; text-align:center; }
+.upload-box.has-image { border-style:solid; border-color:#e2dce9; background:#eee8f4; }
+.upload-title { display:flex; align-items:center; justify-content:center; gap:10rpx; font-size:30rpx; line-height:1.4; font-weight:600; }
+.upload-plus { font-size:40rpx; font-weight:400; line-height:1; color:#5c556b; }
+.upload-hint { margin-top:14rpx; padding:0 24rpx; color:#6f6876; font-size:12px; line-height:1.6; }
+.preview { width:100%; height:340rpx; display:block; }
+.replace-image { position:absolute; right:18rpx; bottom:18rpx; display:flex; align-items:center; gap:6rpx; padding:10rpx 18rpx; border-radius:28rpx; background:rgba(255,255,255,.9); color:#5c556b; font-size:24rpx; }
+.replace-image .upload-plus { font-size:30rpx; }
+.error-card { padding:28rpx; color:#7d343b; background:#fff0f0; }
+.image-error { margin-top:12rpx; padding:14rpx 18rpx; border-radius:16rpx; color:#7d343b; background:#fff0f0; font-size:12px; line-height:1.5; }
+.form-input, .form-textarea { display:block; width:100%; box-sizing:border-box; background:#f8f7fc; border-radius:16rpx; color:#2f2f32; font-size:28rpx; line-height:1.55; }
+.form-input { min-height:48px; padding:18rpx 22rpx; }
+.account-status { margin-top:12rpx; color:#6f6876; font-size:24rpx; line-height:1.5; }
+.account-status.linked { color:#365f45; }
+.form-textarea { min-height:300rpx; padding:22rpx; line-height:1.55; }
+.project-tags { display:flex; flex-wrap:wrap; gap:14rpx; }
+.project-tag { display:flex; align-items:center; max-width:100%; min-height:48px; box-sizing:border-box; padding:12rpx 18rpx 12rpx 12rpx; border-radius:28rpx; background:#f1edf7; color:#6f5a82; font-size:24rpx; line-height:1.35; }
+.project-tag.checked { background:#e6e0f8; color:#5c556b; }
+.project-tag checkbox { transform:scale(.78); margin-right:4rpx; }
+.project-tag text { min-width:0; overflow-wrap:anywhere; }
+.delete-button { min-height:48px; display:flex; align-items:center; justify-content:center; margin-top:24rpx; padding:14rpx 24rpx; color:#7d343b; background:#fff0f0; }

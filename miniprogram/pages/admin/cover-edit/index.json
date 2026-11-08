@@ -1,0 +1,4 @@
+{
+  "navigationBarTitleText": "新增封面",
+  "usingComponents": { "home-cover-image": "/components/cover-image/index" }
+}
