@@ -78,7 +78,7 @@ Tab 颜色对应 [app.json](../../app.json)；预约操作颜色对应 [预约�
 | `appointment-checked-in.png` | 我的页面“已签到”分类 | 勾选标记 |
 | `appointment-cancelled.png` | 我的页面“已取消”分类 | 取消标记 |
 | `appointment-all.png` | 我的页面“全部”分类、芳疗师首页客户预约入口 | 列表 |
-| `appointment-action-checkin.png` | 预约卡片及管理预约详情的签到按钮，位于文字右侧 | 圆圈勾选 |
+| `appointment-action-checkin.png` | 预约卡片、管理预约详情及待签到列表一键签到入口，位于文字右侧 | 圆圈勾选 |
 | `appointment-action-edit.png` | 预约卡片修改按钮，位于文字右侧 | 铅笔 |
 | `appointment-action-cancel.png` | 预约卡片及管理预约详情的取消按钮，位于文字右侧 | 圆圈叉号 |
 

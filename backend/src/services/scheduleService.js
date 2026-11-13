@@ -66,6 +66,9 @@ async function dayFor({ therapistId, date, userId, appointmentId }, client, lock
   }
   const period = await calendar(date, client, !!appointmentId);
   const [rule] = await repository.rulesForDate([person.id], date, client);
+  // Existing selections remain editable after removal from availability; this
+  // scoped allowance is never exposed to another customer or a new booking.
+  if (appointmentId) rule.serviceItemIds = [...new Set([...rule.serviceItemIds, ...await repository.originalProjectIds(appointmentId, client)])];
   const occupied = await repository.busy(date, [person.id], userId, appointmentId, client);
   return presentDay(person, rule, period, occupied);
 }
@@ -196,14 +199,17 @@ async function putWeekly(input, context) {
       throw new AppError("THERAPIST_NOT_FOUND", "所选芳疗师已停用或不存在", 409);
     }
     const items = has(input, "serviceItemIds") ? await projects(input.serviceItemIds, client) : null;
+    const deferredDates = [];
     for (const id of selected) {
       for (const day of days) {
         const previous = await repository.weekly(id, day, client);
         const nextSchedule = rule || normalizeSchedule(previous);
-        await repository.saveWeekly(id, day, { ...nextSchedule, serviceItemIds: items ?? previous.serviceItemIds }, client);
+        const next = { ...nextSchedule, serviceItemIds: items ?? previous.serviceItemIds };
+        await repository.saveWeekly(id, day, next, client);
+        deferredDates.push(...await repository.applyWeeklyToDates(id, day, next, client, { schedule: !!rule, projects: items !== null }));
       }
     }
-    const result = { updated: selected.length * days.length };
+    const result = { updated: selected.length * days.length, deferredDates };
     await audit(context, "update_weekly_schedules", null, null, { therapistIds: selected, weekdays: days, rule, serviceItemIds: items }, client);
     return result;
   });
@@ -237,13 +243,15 @@ async function putWeeklyDays(id, input, context) {
         throw new AppError("INVALID_SERVICE_ITEMS", "周" + "一二三四五六日"[day.weekday - 1] + "：项目已停用或不存在，请重新选择", 409);
       }
     }
-    const before = [];
+    const before = [], deferredDates = [];
     for (const day of days) {
       before.push({ weekday: day.weekday, ...await repository.weekly(id, day.weekday, client) });
       await repository.saveWeekly(id, day.weekday, { ...day.schedule, serviceItemIds: day.serviceItemIds }, client);
+      deferredDates.push(...await repository.applyWeeklyToDates(id, day.weekday,
+        { ...day.schedule, serviceItemIds: day.serviceItemIds }, client));
     }
     await audit(context, "update_weekly_schedule_days", id, before, days, client);
-    return { updated: days.length, days };
+    return { updated: days.length, days, deferredDates };
   });
 }
 
@@ -294,9 +302,6 @@ async function patchDay(id, input, context) {
     const occupied = await repository.busy(day.date, [day.therapistId], null, null, client, true);
     const items = has(input, "serviceItemIds") ? await projects(input.serviceItemIds, client) : day.serviceItemIds;
     const now = new Date();
-    if (has(input, "serviceItemIds") && occupied.some(row => toShanghaiInstant(day.date, row.endTime) > now && (row.serviceItemIds || [row.serviceItemId]).some(id => !items.includes(id)))) {
-      throw new AppError("SCHEDULE_PROJECT_IN_USE", "未结束的预约仍在使用该项目", 409);
-    }
     if (expectedGrid) {
       const opening = has(input, "open");
       checkBulkCells(day, expectedGrid, opening ? open : close, opening, occupied, now);
@@ -317,7 +322,7 @@ async function patchDay(id, input, context) {
     if (JSON.stringify(closed) !== JSON.stringify(day.closed)
       || [...items].sort().join() !== [...day.serviceItemIds].sort().join()) {
       await freezeDay(day, client);
-      await repository.updateDay(next, client);
+      await repository.updateDay(next, client, { open, close });
       await audit(context, "update_daily_schedule", day.therapistId,
         { date: day.date, closed: day.closed, serviceItemIds: day.serviceItemIds },
         { date: day.date, closed, serviceItemIds: items }, client);

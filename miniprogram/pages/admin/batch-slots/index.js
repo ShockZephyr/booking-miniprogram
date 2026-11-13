@@ -11,11 +11,7 @@ const fieldNotes = {
   "最短预约时长": "必须是时间精度的正整数倍；每笔客户预约的时长将须至少满足该值。"
 };
 const weekdays = "一二三四五六日".split("").map((label, i) => ({ value: i + 1, label: "周" + label }));
-const defaultRanges = () => [
-  { startTime: "09:00", endTime: "12:00" },
-  { startTime: "14:00", endTime: "17:00" },
-  { startTime: "19:00", endTime: "21:00" }
-];
+const defaultRanges = batchMemory.defaultRanges;
 let rangeKey = 0;
 let formVersion = 0;
 function format(mins) {
@@ -389,17 +385,17 @@ Page({
       const changes = [body.schedule && (body.schedule.ranges.length ? "覆盖原排班" : "设为全天休息"),
         body.serviceItemIds && (body.serviceItemIds.length ? "覆盖可约项目" : "清空可约项目")].filter(Boolean).join("、");
       const accept = await new Promise((resolve,reject) => wx.showModal({ title: "保存每周排班",
-        content: d.therapistIds.length + " 位芳疗师 × " + d.selectedDays.length + " 个星期，共 " + d.therapistIds.length*d.selectedDays.length + " 组，将" + changes + "。已存在预约的日期沿用原有排班。",
+        content: d.therapistIds.length + " 位芳疗师 × " + d.selectedDays.length + " 个星期，共 " + d.therapistIds.length*d.selectedDays.length + " 组，将" + changes + "。保留已有有效预约，其余排班及可约项目立即更新；手动关闭仍保留。",
         confirmText: "保存", success: res => resolve(res.confirm), fail: reject }));
       if (!current() || !this._visible || this.data.formVersion !== confirmationVersion || !accept) return;
       const pendingSave = batchMemory.beginSave(memoryKey);
-      await admin.saveWeekly(body);
+      const result = await admin.saveWeekly(body);
       // Preferences outlive this page; session and save ordering still protect them.
       const remembered = !memoryKey || (owner === session.sessionKey()
         && memoryKey === batchMemory.storageKey() && batchMemory.write(pendingSave, body));
       if (!current()) return;
       this.syncLeaveAlert(true);
-      if (this._visible) wx.showToast(remembered ? { title: "周排班已保存" } : { title: "排班已保存，预填未记住", icon: "none" });
+      if (this._visible) this.showSaveResult(result, remembered);
       if (d.singleId) { this.setData({ saving: false }); await this.loadWeekday(d.selectedDays[0]); }
     } catch (error) { if (current() && this._visible) errorText(error.message || "保存失败，请重试"); }
     finally { if (current()) this.setData({ saving: false, formVersion: ++formVersion }); }
@@ -423,7 +419,7 @@ Page({
     try {
       const names = days.map(day => "周" + "一二三四五六日"[day.weekday - 1]).join("、");
       const accept = await new Promise((resolve, reject) => wx.showModal({ title: "保存每周排班",
-        content: `将修改${names}的排班和可约项目，整批保存。已存在预约的日期沿用原有排班。`,
+        content: `将修改${names}的排班和可约项目，整批保存。保留已有有效预约，其余排班及可约项目立即更新；手动关闭仍保留。`,
         confirmText: "保存", success: res => resolve(res.confirm), fail: reject }));
       if (!current() || !this._visible || this.data.formVersion !== confirmationVersion || !accept) return;
       const result = await admin.saveWeeklyDays(id, days);
@@ -436,7 +432,7 @@ Page({
       }
       this.showWeekday(this._weekDrafts[this.data.selectedDays[0]]);
       this.syncDirtyDays(true);
-      if (this._visible) wx.showToast({ title: "周排班已保存" });
+      if (this._visible) this.showSaveResult(result);
     } catch (error) {
       if (current()) {
         const message = error.message || "保存失败，请重试";
@@ -446,5 +442,18 @@ Page({
     } finally {
       if (current()) this.setData({ saving: false, formVersion: ++formVersion });
     }
+  },
+  showSaveResult(result, remembered = true) {
+    const deferred = result && result.deferredDates || [];
+    if (!deferred.length) {
+      wx.showToast(remembered ? { title: "周排班已保存" } : { title: "排班已保存，预填未记住", icon: "none" });
+      return;
+    }
+    const dates = deferred.slice(0, 5).map(day => {
+      const person = this.data.therapists.find(item => item.id === day.therapistId);
+      return `${person ? person.name + " " : ""}${day.date}：精度${day.step}分钟，最短${day.minDuration}分钟`;
+    }).join("；");
+    wx.showModal({ title: "排班已保存", showCancel: false,
+      content: `以下日期为保护已有预约，暂沿用原精度及最短时长：${dates}${deferred.length > 5 ? "等" + deferred.length + "个日期排班" : ""}。其余调整已生效。${remembered ? "" : "本次预填未记住。"}` });
   }
 });

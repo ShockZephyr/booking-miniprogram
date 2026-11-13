@@ -54,7 +54,7 @@ test("full replacement validates the new rule while legacy partial updates canno
   let previous = {step:10,minDuration:90,ranges:[range("09:10","10:10")],serviceItemIds:[]};
   const repository = {
     activeTherapists: async () => [{id}], activeProjectIds: async () => [],
-    weekly: async () => previous,
+    weekly: async () => previous, applyWeeklyToDates: async () => [],
     saveWeekly: async (person, day, rule, tx) => { assert.equal(tx,client); writes.push(JSON.parse(JSON.stringify(rule))); }
   };
   const dependencies = {

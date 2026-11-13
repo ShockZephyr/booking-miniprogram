@@ -14,8 +14,9 @@ test("new therapist weekly defaults are atomic and never replace edited or resto
       serviceItemIds: [fx.projects[0].id], ...uploaded };
     const expected = [
       { startTime: "09:00", endTime: "12:00" },
-      { startTime: "14:00", endTime: "17:00" },
-      { startTime: "19:00", endTime: "21:00" }
+      { startTime: "12:30", endTime: "15:00" },
+      { startTime: "15:30", endTime: "18:00" },
+      { startTime: "18:30", endTime: "20:30" }
     ];
     const rows = async id => (await fx.pool.query(
       "SELECT weekday,step,min_duration,ranges,service_item_ids FROM weekly_schedules WHERE therapist_id=$1 ORDER BY weekday", [id]

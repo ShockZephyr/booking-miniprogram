@@ -643,7 +643,7 @@ test("batch weekly updates confirm the scope and send one operation for all sele
   assert.equal(h.modals.length,2); assert.match(h.modals[1].content,/2 位芳疗师 × 2 个星期，共 4 组/);
   h.modals[1].success({confirm:true}); await saved;
   assert.deepEqual(h.writes,[{therapistIds:["t1","t2"],weekdays:[1,7],
-    schedule:{step:30,minDuration:90,ranges:[{startTime:"09:00",endTime:"12:00"}, {startTime:"14:00",endTime:"17:00"}, {startTime:"19:00",endTime:"21:00"}]},serviceItemIds:["p1"]}]);
+    schedule:{step:30,minDuration:90,ranges:[{startTime:"09:00",endTime:"12:00"}, {startTime:"12:30",endTime:"15:00"}, {startTime:"15:30",endTime:"18:00"}, {startTime:"18:30",endTime:"20:30"}]},serviceItemIds:["p1"]}]);
 });
 
 test("batch weekly select-all keeps all seven days selected and cannot change a pending save's scope", async ()=>{
@@ -712,11 +712,11 @@ test("weekly editor always saves schedules and projects together; invalid durati
   p.setMinimum(selection("90"));
   p.setTime({currentTarget:{dataset:{index:1,field:"startTime"}},detail:{value:p.data.times.indexOf("10:00")}});
   await p.save(); assert.match(h.toasts.at(-1),/重叠/); assert.equal(h.writes.length,0);
-  p.setTime({currentTarget:{dataset:{index:1,field:"startTime"}},detail:{value:p.data.times.indexOf("14:00")}});
+  p.setTime({currentTarget:{dataset:{index:1,field:"startTime"}},detail:{value:p.data.times.indexOf("12:30")}});
   p.selectProjects(selection(["p2"]));
   const saved=p.save(); h.modals[0].success({confirm:true}); await saved;
   assert.deepEqual(h.writes,[{therapistIds:["t2"],weekdays:[3],serviceItemIds:["p2"],
-    schedule:{step:30,minDuration:90,ranges:[{startTime:"09:00",endTime:"12:00"},{startTime:"14:00",endTime:"17:00"},{startTime:"19:00",endTime:"21:00"}]}}]);
+    schedule:{step:30,minDuration:90,ranges:[{startTime:"09:00",endTime:"12:00"},{startTime:"12:30",endTime:"15:00"},{startTime:"15:30",endTime:"18:00"},{startTime:"18:30",endTime:"20:30"}]}}]);
 });
 
 test("switching weekdays drops an older weekly rule, and changing account cancels an open save confirmation",async()=>{

@@ -146,8 +146,8 @@ test("therapist lifecycle, real PostgreSQL constraints and concurrent booking", 
       async () => therapistPortal.appointment(booked.id, await portalUser(otherTherapist.id)),
       { code: "APPOINTMENT_NOT_FOUND" }
     );
-    await assert.rejects(() => schedules.patchDay(booked.therapistId, { date, serviceItemIds: [other] }, context),
-      { code: "SCHEDULE_PROJECT_IN_USE" });
+    await schedules.patchDay(booked.therapistId, { date, serviceItemIds: [other] }, context);
+    assert.equal((await pool.query("SELECT service_item_id FROM appointments WHERE id=$1", [booked.id])).rows[0].service_item_id, item);
     await schedules.patchDay(booked.therapistId, { date, serviceItemIds: [item] }, context);
     await assert.rejects(() => therapistService.remove(booked.therapistId, context), { code: "THERAPIST_HAS_APPOINTMENTS" });
     checkInNow = new Date(`${booked.date}T${booked.startTime}:00+08:00`);
@@ -192,13 +192,13 @@ test("therapist lifecycle, real PostgreSQL constraints and concurrent booking", 
     assert.deepEqual((await therapistService.active(b.id)).tags,[]);
     await therapistService.save(b.id, { ...payloadB, name:'乙', bio:'更新简介', serviceItemIds:[] }, context);
     assert.equal((await pool.query('SELECT $1::uuid=ANY(service_item_ids) AS linked FROM therapists WHERE id=$2', [project.id,b.id])).rows[0].linked, true);
-    assert.deepEqual((await schedules.detail({therapistId:b.id,date}, null)).serviceItemIds,[]);
+    assert.deepEqual((await schedules.detail({therapistId:b.id,date}, null)).serviceItemIds,[item]);
     assert.deepEqual((await schedules.getWeekly(b.id,weekday,context)).serviceItemIds,[item]);
     const restoredProject = await catalog.restore([project.id], context);
     assert.equal(restoredProject.restored, 1);
     assert.equal((await catalog.list()).at(-1).id, project.id);
     assert.deepEqual((await therapistService.active(b.id)).tags, ['新名称']);
-    assert.deepEqual((await schedules.detail({therapistId:b.id,date}, null)).serviceItemIds,[]);
+    assert.deepEqual((await schedules.detail({therapistId:b.id,date}, null)).serviceItemIds,[item]);
     assert.deepEqual((await schedules.getWeekly(b.id,weekday,context)).serviceItemIds,[item]);
     await catalog.remove(project.id, context);
     assert.equal((await catalog.purge([project.id], context)).purged, 1);

@@ -58,7 +58,7 @@ test("private review login runs against isolated HTTP/PostgreSQL with production
         assert.equal(days.rows.length,7);
         for (const day of days.rows) {
           assert.equal(day.step,30); assert.equal(day.min_duration,90); assert.deepEqual(day.service_item_ids,[]);
-          assert.deepEqual(day.ranges,[{startTime:"09:00",endTime:"12:00"},{startTime:"14:00",endTime:"17:00"},{startTime:"19:00",endTime:"21:00"}]);
+          assert.deepEqual(day.ranges,[{startTime:"09:00",endTime:"12:00"},{startTime:"12:30",endTime:"15:00"},{startTime:"15:30",endTime:"18:00"},{startTime:"18:30",endTime:"20:30"}]);
         }
         assert.equal((await h.pool.query("SELECT count(*)::int AS n FROM member_whitelist WHERE phone='review:therapist'")).rows[0].n,0);
         const own=h.bookingTime({date:h.tomorrow,start:"09:00",end:"10:30",therapist:{id:staff.user.therapistId}});

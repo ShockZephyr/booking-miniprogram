@@ -148,7 +148,7 @@ for (const outcome of ["success", "failure"]) {
 
 test("list cards use the existing busy guard without changing hit areas or action bubbling", () => {
   const list = fs.readFileSync(path.join(root, "pages/my-appointments/index.wxml"), "utf8");
-  assert.match(list, /busy="{{signing \|\| cancelling}}"/);
+  assert.match(list, /busy="{{signing \|\| cancelling \|\| bulkSigning}}"/);
   const card = fs.readFileSync(path.join(root, "components/appointment-card/index.js"), "utf8");
   assert.match(card, /if \(this.properties.busy\) return/);
 });

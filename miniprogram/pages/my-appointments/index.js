@@ -9,6 +9,7 @@ const filterTime = require("../../utils/filterTime");
 const checkIn = require("../../utils/checkIn");
 const confirmation = require("../../utils/confirmation");
 const appointmentInbox = require('../../services/appointmentInbox');
+const batchCheckIn = require('../../services/batchCheckIn');
 
 const PAGE_SIZE = 20;
 const DEFAULT_SORT = "service_desc";
@@ -98,6 +99,20 @@ function appointmentFilterCount(data, options = {}) {
     + (data.filterStartTime !== DEFAULT_START_TIME || data.filterEndTime !== DEFAULT_END_TIME ? 1 : 0);
 }
 
+function appointmentFilterQuery(data) {
+  const projects = data.filterAllProjects ? [] : data.filterServiceItemIds;
+  const therapists = data.isTherapistMode || data.filterAllTherapists ? [] : data.filterTherapistIds;
+  return {
+    serviceItemIds: projects.filter(id => id !== INACTIVE_PROJECT_FILTER_ID),
+    therapistIds: therapists.filter(id => id !== INACTIVE_THERAPIST_FILTER_ID),
+    includeInactiveServiceItems: projects.includes(INACTIVE_PROJECT_FILTER_ID) ? "1" : "",
+    includeInactiveTherapists: therapists.includes(INACTIVE_THERAPIST_FILTER_ID) ? "1" : "",
+    fromDate: data.filterAllDates ? "" : data.filterFromDate,
+    toDate: data.filterAllDates ? "" : data.filterToDate,
+    startTime: data.filterStartTime, endTime: data.filterEndTime
+  };
+}
+
 function identityKey(user) {
   if (!user) return "guest";
   return `${user.id || ""}:${user.role || "user"}:${user.therapistId || ""}`;
@@ -166,6 +181,7 @@ Page({
     selectedAppointment: null,
     signing: false,
     cancelling: false,
+    bulkSigning: false,
     sort: DEFAULT_SORT,
     sortOptions: SORT_OPTIONS,
     sortMenuVisible: false,
@@ -210,6 +226,11 @@ Page({
     this._hidden = false;
     this.setData({ filterVersion: this.data.filterVersion + 1,
       sortMenuVisible: false, sortVersion: this.data.sortVersion + 1 });
+    // Returning invalidates an unsubmitted confirmation, not a confirmed write.
+    if (this._batchCheckInAction && (!this._batchCheckInAction.submitted || !this._batchCheckInAction.sameSession())) {
+      this._batchCheckInAction = null;
+      this.setData({ bulkSigning: false });
+    }
     if (this._confirmedAction) confirmation.reconcile(this);
     this._openingEditor = false;
     this._editorNavigationId = (this._editorNavigationId || 0) + 1;
@@ -260,6 +281,7 @@ Page({
   },
   onUnload() {
     this._unloaded = true;
+    this._batchCheckInAction = null;
     this.invalidateReadConfirmations();
     if (this._confirmedAction) confirmation.clear(this);
     this._identityRequestId = (this._identityRequestId || 0) + 1;
@@ -290,6 +312,7 @@ Page({
     const identityChanged = this._identityKey !== undefined && this._identityKey !== nextIdentityKey;
     const filterOwner = filterSessionKey();
     const filterSessionChanged = this._filterOwner !== undefined && this._filterOwner !== filterOwner;
+    if (this._batchCheckInAction && !this._batchCheckInAction.sameSession()) this._batchCheckInAction = null;
     this._filterOwner = filterOwner;
     this._identityKey = nextIdentityKey;
     this._listRequestId = (this._listRequestId || 0) + 1;
@@ -343,12 +366,35 @@ Page({
     if (wx.setNavigationBarTitle) {
       wx.setNavigationBarTitle({ title: isAdminMode ? "全部预约" : isTherapistMode ? "客户预约" : "我的预约" });
     }
+    this.watchPendingBatchCheckIn();
     if (!user) {
       this.loginForAppointment();
       return;
     }
     this.loadFilterOptions();
     this.load();
+  },
+
+  watchPendingBatchCheckIn() {
+    const version = this._batchWaitVersion = (this._batchWaitVersion || 0) + 1;
+    const owner = filterSessionKey();
+    if (this._batchCheckInAction && this._batchCheckInAction.sameSession()) {
+      this.setData({ bulkSigning: true });
+      return;
+    }
+    const waiting = (this.data.isAdminMode || this.data.isTherapistMode)
+      && batchCheckIn.pendingForCurrentSession && batchCheckIn.pendingForCurrentSession();
+    this.setData({ bulkSigning: !!waiting });
+    if (!waiting) return;
+    waiting.then(() => {
+      if (this._unloaded || version !== this._batchWaitVersion || owner !== filterSessionKey()) return;
+      this.setData({ bulkSigning: false });
+      if (!this._hidden && this.data.identityReady && this._filterOwner === owner) {
+        this.load();
+        this.flushReadConfirmations();
+      }
+      // Hidden/identity-loading pages already reload in showForUser on return.
+    });
   },
 
   loginForAppointment() {
@@ -398,20 +444,7 @@ Page({
     const query = { status: this.data.active, sort: this.data.sort, page: nextPage, pageSize: PAGE_SIZE };
     if (this.data.isAdminMode || this.data.isTherapistMode) query.unread = '1';
     if (append && this.data.nextCursor) query.cursor = this.data.nextCursor;
-    const selectedProjectIds = this.data.filterAllProjects ? [] : this.data.filterServiceItemIds;
-    const selectedTherapistIds = this.data.isTherapistMode || this.data.filterAllTherapists
-      ? []
-      : this.data.filterTherapistIds;
-    Object.assign(query, {
-      serviceItemIds: selectedProjectIds.filter((id) => id !== INACTIVE_PROJECT_FILTER_ID),
-      therapistIds: selectedTherapistIds.filter((id) => id !== INACTIVE_THERAPIST_FILTER_ID),
-      includeInactiveServiceItems: selectedProjectIds.includes(INACTIVE_PROJECT_FILTER_ID) ? "1" : "",
-      includeInactiveTherapists: selectedTherapistIds.includes(INACTIVE_THERAPIST_FILTER_ID) ? "1" : "",
-      fromDate: this.data.filterAllDates ? "" : this.data.filterFromDate,
-      toDate: this.data.filterAllDates ? "" : this.data.filterToDate,
-      startTime: this.data.filterStartTime,
-      endTime: this.data.filterEndTime
-    });
+    Object.assign(query, appointmentFilterQuery(this.data));
     const request = this.data.isAdminMode
       ? adminService.appointments(query)
       : this.data.isTherapistMode
@@ -487,7 +520,7 @@ Page({
 
   flushReadConfirmations() {
     if (this._hidden || this._unloaded || this._reading || !this._readPending || !this._readPending.length) return;
-    if (this.data.filterDrawerVisible || this.data.sortMenuVisible) return;
+    if (this.data.filterDrawerVisible || this.data.sortMenuVisible || this.data.bulkSigning) return;
     if (this._readRetryTimer) clearTimeout(this._readRetryTimer);
     const job = this._readPending[0];
     const current = () => this.isReadConfirmationCurrent(job.viewId, job.owner, job.generation);
@@ -496,7 +529,7 @@ Page({
     let failed = false;
     let sent = false;
     Promise.resolve().then(() => {
-      if (!current() || this.data.filterDrawerVisible || this.data.sortMenuVisible) return null;
+      if (!current() || this.data.filterDrawerVisible || this.data.sortMenuVisible || this.data.bulkSigning) return null;
       const entries = this.displayedReadEntries(job.entries);
       if (!entries.length) {
         if (this._readPending[0] === job) this._readPending.shift();
@@ -798,8 +831,59 @@ Page({
     this.setData(next, () => this.load());
   },
 
+  async checkInAll(event) {
+    const dataset = event && event.currentTarget && event.currentTarget.dataset || {};
+    if (this._hidden || this._unloaded || !this.data.identityReady || this.data.loading || this.data.listError
+      || this.data.active !== "pending" || !(this.data.isAdminMode || this.data.isTherapistMode)
+      || this.data.filterDrawerVisible || this.data.sortMenuVisible || this._confirmedAction
+      || this.data.signing || this.data.cancelling || this.data.bulkSigning
+      || Number(dataset.filterVersion) !== this.data.filterVersion || Number(dataset.sortVersion) !== this.data.sortVersion
+      || this._filterOwner !== filterSessionKey()) return;
+    const owner = filterSessionKey(), admin = this.data.isAdminMode;
+    const filterVersion = this.data.filterVersion, sortVersion = this.data.sortVersion;
+    const filters = appointmentFilterQuery(this.data), scope = JSON.stringify(filters);
+    const action = { submitted: false, sameSession: () => owner === filterSessionKey() };
+    action.current = () => this._batchCheckInAction === action && !this._hidden && !this._unloaded
+      && owner === filterSessionKey() && this.data.identityReady && this.data.active === "pending"
+      && this.data.isAdminMode === admin && filterVersion === this.data.filterVersion
+      && sortVersion === this.data.sortVersion && scope === JSON.stringify(appointmentFilterQuery(this.data));
+    // After submission, refresh the current query rather than the old view.
+    action.resultCurrent = () => this._batchCheckInAction === action && !this._hidden && !this._unloaded
+      && action.sameSession() && this.data.identityReady && this._filterOwner === owner;
+    this._batchCheckInAction = action;
+    this.setData({ bulkSigning: true });
+    try {
+      const preview = await batchCheckIn.preview(admin, filters);
+      if (!action.current()) return;
+      if (!preview.count) { wx.showToast({ title: "暂无可签到预约", icon: "none" }); return; }
+      const confirmed = await new Promise((resolve, reject) => wx.showModal({
+        title: "一键签到", content: `将为当前筛选范围内全部 ${preview.count} 条可签到预约签到（包含其他分页），请确认用户已到店。`,
+        confirmText: "确认签到", confirmColor: "#396b4b",
+        success: result => resolve(!!result.confirm), fail: () => reject(new Error("确认未完成，请重试"))
+      }));
+      if (!confirmed || !action.current()) return;
+      action.submitted = true;
+      const result = await batchCheckIn.submit(admin, filters, preview.confirmationVersion);
+      if (!action.resultCurrent()) return;
+      wx.showToast({ title: `已签到 ${result.checkedIn} 条`, icon: "success" });
+      this.load();
+    } catch (error) {
+      if (!(action.submitted ? action.resultCurrent() : action.current())) return;
+      wx.showToast({ title: error.code === "NETWORK_ERROR"
+        ? action.submitted ? "签到结果未确认，请刷新后查看" : "可签到预约加载失败，请重试"
+        : error.message || "签到失败，请重试", icon: "none" });
+      // Never replay an uncertain write or reuse a stale confirmation.
+      this.load();
+    } finally {
+      if (this._batchCheckInAction === action) {
+        this._batchCheckInAction = null;
+        if (!this._unloaded) this.setData({ bulkSigning: false }, () => this.flushReadConfirmations());
+      }
+    }
+  },
+
   selectAppointment(event) {
-    if (this._unloaded || this._hidden || this._openingDetail || this.data.loading
+    if (this._unloaded || this._hidden || this._openingDetail || this.data.loading || this.data.bulkSigning
       || (this._filterOwner !== undefined && this._filterOwner !== filterSessionKey())) return;
     const id = event.currentTarget.dataset.id;
     const appointment = this.data.appointments.find(item => item.id === id);
@@ -811,7 +895,7 @@ Page({
   },
 
   cardAction(event) {
-    if (this._unloaded || this._hidden || this.data.signing || this.data.cancelling
+    if (this._unloaded || this._hidden || this.data.signing || this.data.cancelling || this.data.bulkSigning
       || (this._filterOwner !== undefined && this._filterOwner !== filterSessionKey())) return;
     const type = event.detail.type;
     const appointment = event.detail.appointment;

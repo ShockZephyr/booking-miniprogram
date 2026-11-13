@@ -134,11 +134,11 @@ test("schedule snapshots, ownership and concurrent mutations on isolated Postgre
           assert.equal(ok(await read(a.id, day1, customer, booked.id)).busy.length, 0);
         });
 
-        await t.test("an occupied cell and an in-use project are protected; existing dates survive a smaller calendar", async () => {
+        await t.test("occupied cells stay protected while day projects can be removed; existing bookings survive a smaller calendar", async () => {
           assert.equal((await apply(a.id, { date: day1, expectedStep: 30, close: ["09:30"] })).body.code, "SCHEDULE_CELL_UNAVAILABLE");
-          assert.equal((await apply(a.id, { date: day1, serviceItemIds: [projects[1].id] })).body.code, "SCHEDULE_PROJECT_IN_USE");
-          ok(await apply(a.id, { date: day1, expectedStep: 30, close: ["10:30"], serviceItemIds: [projects[0].id] }));
-          assert.equal((await create(a, day1, "10:30", "12:00", other)).status, 409);
+          ok(await apply(a.id, { date: day1, serviceItemIds: [projects[1].id] }));
+          ok(await apply(a.id, { date: day1, expectedStep: 30, close: ["13:00"], serviceItemIds: [projects[0].id] }));
+          assert.equal((await create(a, day1, "13:00", "14:30", other)).status, 409);
           ok(await api("/api/admin/schedules/settings", admin, "PATCH", { daysVisible: 1 }));
           assert.equal((await read(a.id, day1)).body.code, "DATE_OUT_OF_RANGE");
           ok(await read(a.id, day1, customer, booked.id));
@@ -148,8 +148,9 @@ test("schedule snapshots, ownership and concurrent mutations on isolated Postgre
           ok(await api(`/api/appointments/${booked.id}/cancel`, customer, "PATCH"));
           assert.equal(await frozen(a.id, day1), 1);
           ok(await api("/api/admin/schedules/settings", admin, "PATCH", { daysVisible: 7 }));
-          assert.deepEqual(ok(await read(a.id, day1)).closed, ["10:30"]);
-          ok(await apply(a.id, { date: day1, expectedStep: 30, open: ["10:30"] }));
+          assert.deepEqual(ok(await read(a.id, day1)).ranges, [{ startTime: "13:00", endTime: "17:00" }]);
+          assert.deepEqual(ok(await read(a.id, day1)).closed, ["13:00"]);
+          ok(await apply(a.id, { date: day1, expectedStep: 30, open: ["13:00"] }));
         });
 
         await t.test("closing an empty cell first blocks booking; booking first protects its cells", async () => {

@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { resolveRule, changeClosures } = require("../utils/liveSchedule");
 
 const emptyWeek = () => ({ step: 30, minDuration: 90, ranges: [], serviceItemIds: [] });
 
@@ -56,12 +57,18 @@ async function filterProjects(client) {
   return rows;
 }
 
-async function rulesForDate(ids, date, client) {
+async function rawRulesForDate(ids, date, client) {
   const { rows } = await db.query(
     `SELECT t.id AS "therapistId", COALESCE(d.step,w.step,30)::int AS step,
        COALESCE(d.min_duration,w.min_duration,90) AS "minDuration", COALESCE(d.ranges,w.ranges,'[]') AS ranges,
        COALESCE(d.service_item_ids,w.service_item_ids,'{}') AS "serviceItemIds",
-       COALESCE(d.closed,'{}') AS closed
+       d.fallback_step AS "fallbackStep", d.fallback_min_duration AS "fallbackMinDuration",
+       COALESCE(d.manual_closed_ranges,'[]') AS "manualClosedRanges",
+       COALESCE((SELECT jsonb_agg(jsonb_build_object('startTime',to_char(a.start_time,'HH24:MI'),
+         'endTime',to_char(a.end_time,'HH24:MI')) ORDER BY a.start_time,a.id)
+         FROM appointments a WHERE a.therapist_id=t.id AND a.date=$2::date
+           AND a.status IN ('booked','checked_in')
+           AND (a.date+a.end_time) AT TIME ZONE 'Asia/Shanghai'>statement_timestamp()),'[]') AS protected
      FROM unnest($1::uuid[]) t(id)
      LEFT JOIN schedule_days d ON d.therapist_id=t.id AND d.date=$2::date
      LEFT JOIN weekly_schedules w ON w.therapist_id=t.id AND w.weekday=EXTRACT(ISODOW FROM $2::date)`,
@@ -70,19 +77,58 @@ async function rulesForDate(ids, date, client) {
   return rows;
 }
 
+async function rulesForDate(ids, date, client) {
+  return (await rawRulesForDate(ids, date, client)).map(rule => resolveRule(rule, rule.protected));
+}
+
+// Called in the same identity/therapist-locked transaction as the template write.
+// Persist only the requested base, never the union with appointment occupancy.
+async function applyWeeklyToDates(id, weekday, rule, client, { schedule = true, projects = true } = {}) {
+  const { rows: dates } = await db.query(`SELECT date FROM schedule_days
+    WHERE therapist_id=$1 AND date >= (clock_timestamp() AT TIME ZONE 'Asia/Shanghai')::date
+      AND EXTRACT(ISODOW FROM date)=$2 ORDER BY date FOR UPDATE`, [id, weekday], client);
+  const deferredDates = [];
+  for (const { date } of dates) {
+    const [previous] = await rawRulesForDate([id], date, client);
+    const effective = resolveRule(previous, previous.protected);
+    const next = { ...previous,
+      ...(schedule ? { step: rule.step, minDuration: rule.minDuration, ranges: rule.ranges,
+        fallbackStep: effective.step, fallbackMinDuration: effective.minDuration } : {}),
+      ...(projects ? { serviceItemIds: rule.serviceItemIds } : {}) };
+    await db.query(`UPDATE schedule_days SET step=$3,min_duration=$4,ranges=$5::jsonb,
+      service_item_ids=$6::uuid[],fallback_step=$7,fallback_min_duration=$8
+      WHERE therapist_id=$1 AND date=$2`,
+      [id,date,next.step,next.minDuration,JSON.stringify(next.ranges),next.serviceItemIds,next.fallbackStep,next.fallbackMinDuration],client);
+    const resolved = resolveRule(next, next.protected);
+    if (resolved.parametersDeferred) deferredDates.push({ therapistId: id, date, step: resolved.step, minDuration: resolved.minDuration });
+  }
+  return deferredDates;
+}
+
 async function freeze(day, client) {
   await db.query(
     `INSERT INTO schedule_days(therapist_id,date,step,min_duration,ranges,service_item_ids,closed)
-     VALUES ($1,$2,$3,$4,$5::jsonb,$6::uuid[],$7::text[]) ON CONFLICT DO NOTHING`,
-    [day.therapistId, day.date, day.step, day.minDuration, JSON.stringify(day.ranges), day.serviceItemIds, day.closed], client
+     SELECT $1,$2::date,COALESCE(w.step,30),COALESCE(w.min_duration,90),COALESCE(w.ranges,'[]'),
+       COALESCE(w.service_item_ids,'{}'),'{}' FROM (SELECT 1) seed
+     LEFT JOIN weekly_schedules w ON w.therapist_id=$1 AND w.weekday=EXTRACT(ISODOW FROM $2::date)
+     ON CONFLICT DO NOTHING`, [day.therapistId, day.date], client
   );
 }
 
-async function updateDay(day, client) {
+async function updateDay(day, client, { open = [], close = [] } = {}) {
+  const { rows: [stored] } = await db.query("SELECT manual_closed_ranges FROM schedule_days WHERE therapist_id=$1 AND date=$2 FOR UPDATE",
+    [day.therapistId, day.date], client);
+  const manual = changeClosures(stored.manual_closed_ranges, open, close, day.step);
   await db.query(
-    "UPDATE schedule_days SET service_item_ids=$3::uuid[],closed=$4::text[] WHERE therapist_id=$1 AND date=$2",
-    [day.therapistId, day.date, day.serviceItemIds, day.closed], client
+    "UPDATE schedule_days SET service_item_ids=$3::uuid[],closed=$4::text[],manual_closed_ranges=$5::jsonb WHERE therapist_id=$1 AND date=$2",
+    [day.therapistId, day.date, day.serviceItemIds, day.closed, JSON.stringify(manual)], client
   );
+}
+
+async function originalProjectIds(id, client) {
+  const { rows } = await db.query(`SELECT ap.service_item_id AS id FROM appointment_service_items ap
+    JOIN service_items s ON s.id=ap.service_item_id AND s.status='active' WHERE ap.appointment_id=$1 ORDER BY ap.position`, [id], client);
+  return rows.map(row => row.id);
 }
 
 async function busy(date, ids, userId, exclude, client, includeProject = false) {
@@ -126,9 +172,9 @@ async function removeProject(id, client) {
 
 async function disableTherapist(id, client) {
   await db.query("UPDATE weekly_schedules SET ranges='[]' WHERE therapist_id=$1", [id], client);
-  await db.query(`UPDATE schedule_days SET ranges='[]',closed='{}' WHERE therapist_id=$1
+  await db.query(`UPDATE schedule_days SET ranges='[]',closed='{}',manual_closed_ranges='[]' WHERE therapist_id=$1
     AND date >= (clock_timestamp() AT TIME ZONE 'Asia/Shanghai')::date`, [id], client);
 }
 
 module.exports = { settings, setSettings, weekly, saveWeekly, activeTherapists, activeProjectIds, filterProjects, rulesForDate,
-  freeze, updateDay, busy, ownOriginal, staffAppointments, removeProject, disableTherapist };
+  freeze, updateDay, busy, ownOriginal, originalProjectIds, staffAppointments, removeProject, disableTherapist, applyWeeklyToDates };

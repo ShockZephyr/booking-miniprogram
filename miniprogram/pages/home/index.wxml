@@ -1,8 +1,8 @@
 <view class="home">
   <view wx:if="{{(isAdmin || isTherapist) && unread.total}}" class="unread-banner {{unreadOpening ? 'unread-opening' : ''}}" bindtap="openUnread" hover-class="unread-banner-pressed" aria-role="button" aria-label="查看未读预约：新增{{unread.created}}条，变更{{unread.changed}}条" aria-busy="{{unreadOpening}}">
     <view class="unread-banner-content">
-      <text wx:if="{{unread.created}}" class="unread-created-count">有 {{unread.created}} 条未读新增</text>
-      <text wx:if="{{unread.changed}}">有 {{unread.changed}} 条未读变更</text>
+      <text wx:if="{{unread.created}}" class="unread-created-count">您有 {{unread.created}} 条未读新增</text>
+      <text wx:if="{{unread.changed}}">您有 {{unread.changed}} 条未读变更</text>
     </view>
     <view class="unread-banner-chevron" aria-hidden="true"></view>
   </view>

@@ -16,6 +16,10 @@
   <view wx:if="{{sortMenuVisible}}" class="sort-mask" catchtap="closeSortMenu" data-sort-version="{{sortVersion}}" catchtouchmove="noop" aria-hidden="true"></view>
   <view wx:if="{{hasUser || isAdminMode || isTherapistMode}}" class="list-tools {{sortMenuVisible ? 'sort-open' : ''}}">
     <view class="filter-toolbar">
+      <button wx:if="{{(isAdminMode || isTherapistMode) && active === 'pending'}}" class="batch-check-in" hover-class="batch-check-in-hover"
+        bindtap="checkInAll" data-filter-version="{{filterVersion}}" data-sort-version="{{sortVersion}}"
+        disabled="{{!identityReady || loading || !!listError || signing || cancelling || bulkSigning}}" aria-busy="{{bulkSigning}}"
+        aria-label="一键签到当前筛选范围内所有页的可签到预约"><view class="batch-check-in-visual"><text>{{bulkSigning ? '签到中' : '一键签到'}}</text><image class="batch-check-in-icon" src="/assets/icons/appointment-action-checkin.png" mode="aspectFit" aria-hidden="true"></image></view></button>
       <view class="sort-trigger {{sortMenuVisible ? 'sort-expanded' : ''}}" bindtap="toggleSortMenu" data-sort-version="{{sortVersion}}" aria-role="button" aria-expanded="{{sortMenuVisible}}" aria-label="排序方式{{sortMenuVisible ? '，已展开' : '，点击展开'}}">
         <text>排序方式</text><view class="sort-chevron" aria-hidden="true"></view>
       </view>
@@ -58,7 +62,7 @@
           showActions="{{!isAdminMode || active === 'pending' || active === 'all'}}"
           showMemberInfo="{{isAdminMode || isTherapistMode}}"
           actionMode="{{isTherapistMode ? 'therapist' : isAdminMode ? 'admin' : 'user'}}"
-          busy="{{signing || cancelling}}"
+          busy="{{signing || cancelling || bulkSigning}}"
           selected="{{selectedAppointmentId === item.id}}"
           bind:action="cardAction"
         />

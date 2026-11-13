@@ -40,6 +40,9 @@ router.put("/schedules/weekly/:therapistId", asyncHandler(scheduleController.put
 router.patch("/schedules/day/:therapistId", asyncHandler(scheduleController.patchDay));
 
 router.get("/appointments", asyncHandler(appointmentController.adminList));
+const batchCheckIn = require("../controllers/batchCheckInController");
+router.post("/appointments/check-in-preview", asyncHandler(batchCheckIn.adminPreview));
+router.post("/appointments/check-in-batch", asyncHandler(batchCheckIn.adminSubmit));
 router.get("/appointments/:id", asyncHandler(appointmentController.adminGet));
 router.patch("/appointments/:id/cancel", asyncHandler(appointmentController.adminCancel));
 router.patch("/appointments/:id/check-in", asyncHandler(appointmentController.adminCheckIn));

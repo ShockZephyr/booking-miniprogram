@@ -46,12 +46,13 @@ test("multi-project HTTP lifecycle, history, filters and protections use isolate
       assert.equal(day.body.data.appointments[0].serviceItemName, booking.serviceItemName);
       assert.equal((await api(`/api/appointments/${booking.id}?includeHistory=1`, other)).status, 404);
     });
-    await t.test("secondary projects are protected from removal and legacy edits cannot erase the selection", async () => {
+    await t.test("secondary projects cannot be retired but may leave day availability without erasing existing selections", async () => {
       const before = await counts();
       const remove = await api(`/api/admin/projects/${booking.serviceItemIds[1]}`, admin, "DELETE");
       assert.equal(remove.body.code, "PROJECT_HAS_APPOINTMENTS");
       const day = await api(`/api/admin/schedules/day/${therapistB.id}`, admin, "PATCH", { date: tomorrow, serviceItemIds: [booking.serviceItemIds[0]] });
-      assert.equal(day.body.code, "SCHEDULE_PROJECT_IN_USE");
+      assert.equal(day.status, 200);
+      assert.deepEqual(day.body.data.serviceItemIds, [booking.serviceItemIds[0]]);
       const legacy = await api(`/api/appointments/${booking.id}/modify`, customer, "PATCH", { serviceItemId: ids[0], version: booking.version });
       assert.equal(legacy.body.code, "CLIENT_UPDATE_REQUIRED");
       const orderOnly = await api(`/api/appointments/${booking.id}/modify`, customer, "PATCH", { serviceItemIds: [...ids].reverse(), version: booking.version });
@@ -80,6 +81,10 @@ test("multi-project HTTP lifecycle, history, filters and protections use isolate
     await t.test("cancellation keeps project snapshots and frees the entire interval", async () => {
       const cancelled = await api(`/api/appointments/${booking.id}/cancel`, customer, "PATCH");
       assert.equal(cancelled.status, 200); assert.deepEqual(cancelled.body.data.appointment.serviceItems, booking.serviceItems);
+      const unavailable = await api("/api/appointments", customer, "POST", { therapistId: therapistB.id, date: tomorrow,
+        startTime: "09:00", endTime: "10:30", serviceItemIds: ids });
+      assert.equal(unavailable.body.code, "SERVICE_ITEM_NOT_ALLOWED", "cancellation does not restore a removed project");
+      assert.equal((await api(`/api/admin/schedules/day/${therapistB.id}`, admin, "PATCH", { date: tomorrow, serviceItemIds: ids })).status, 200);
       const next = await api("/api/appointments", customer, "POST", { therapistId: therapistB.id, date: tomorrow,
         startTime: "09:00", endTime: "10:30", serviceItemIds: ids });
       assert.equal(next.status, 200);

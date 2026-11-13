@@ -212,8 +212,9 @@ async function save(id, input, context) {
           step: 30, minDuration: 90, serviceItemIds: [],
           ranges: [
             { startTime: "09:00", endTime: "12:00" },
-            { startTime: "14:00", endTime: "17:00" },
-            { startTime: "19:00", endTime: "21:00" }
+            { startTime: "12:30", endTime: "15:00" },
+            { startTime: "15:30", endTime: "18:00" },
+            { startTime: "18:30", endTime: "20:30" }
           ]
         }, client);
       }

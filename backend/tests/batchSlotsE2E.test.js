@@ -149,13 +149,13 @@ test("sorted weekly edits and gap insertion persist through actual HTTP while ke
     const editor = client.screen("pages/admin/batch-slots/index"); editor.onLoad({}); await editor.onShow();
     editor.selectPeople(change([fx.therapistA.id, fx.therapistB.id]));
     editor.pickDays(change(["1", "2"])); editor.selectProjects(change([fx.projects[0].id]));
-    const [morning, afternoon, evening] = editor.data.ranges;
+    const [morning, afternoon, lateAfternoon, evening] = editor.data.ranges;
     const edit = (key, field, time) => editor.setTime(tapAndValue({ key, index: 99, field }, editor.data.times.indexOf(time)));
     edit(evening.key, "endTime", "08:00"); // Auto-adjust its start to 06:30, then sort.
     assert.equal(editor.data.ranges[0].key, evening.key);
-    editor.addRange(tap({ key: morning.key, index: 0 })); // 12:00–13:30, not the whole two-hour gap.
-    const inserted = editor.data.ranges.find(r => ![morning.key, afternoon.key, evening.key].includes(r.key));
-    assert.equal(inserted.startTime, "12:00"); assert.equal(inserted.endTime, "13:30");
+    editor.addRange(tap({ key: morning.key, index: 0 })); // Fill the short 12:00–12:30 gap; merge on save.
+    const inserted = editor.data.ranges.find(r => ![morning.key, afternoon.key, lateAfternoon.key, evening.key].includes(r.key));
+    assert.equal(inserted.startTime, "12:00"); assert.equal(inserted.endTime, "12:30");
     editor.removeRange(tap({ key: afternoon.key, index: 0 }));
     edit(afternoon.key, "startTime", "15:00"); // Late event for a deleted row must not edit a different row.
     edit(morning.key, "startTime", "10:00"); // Keeps its sufficiently long existing end.
@@ -169,11 +169,12 @@ test("sorted weekly edits and gap insertion persist through actual HTTP while ke
     assert.deepEqual(formRanges, [
       { startTime: "06:30", endTime: "08:00" },
       { startTime: "10:00", endTime: "12:00" },
-      { startTime: "12:00", endTime: "13:30" }
+      { startTime: "12:00", endTime: "13:30" },
+      { startTime: "15:30", endTime: "18:00" }
     ]);
     for (const id of [fx.therapistA.id, fx.therapistB.id]) for (const weekday of [1, 2]) {
       const rule = (await fx.api(`/api/admin/schedules/weekly/${id}?weekday=${weekday}`, fx.admin)).body.data;
-      assert.deepEqual(rule.ranges, [{ startTime: "06:30", endTime: "08:00" }, { startTime: "10:00", endTime: "13:30" }]);
+      assert.deepEqual(rule.ranges, [{ startTime: "06:30", endTime: "08:00" }, { startTime: "10:00", endTime: "13:30" }, { startTime: "15:30", endTime: "18:00" }]);
       assert.equal(rule.minDuration, 90); assert.equal(rule.step, 30);
       assert.deepEqual(rule.serviceItemIds, [fx.projects[0].id]);
     }
@@ -240,7 +241,7 @@ test("single therapist multi-day drafts save distinct changes through real front
   });
 });
 
-test("multi-day HTTP updates validate all inputs, roll back later failures, preserve untouched/frozen days and recheck authority", {
+test("multi-day HTTP updates validate all inputs, roll back later failures, update date bases and recheck authority", {
   skip: process.env.RUN_DB_TESTS !== "1"
 }, async () => {
   await require("./audit-2026-10-20/isolated").withDatabase(async fx => {
@@ -286,7 +287,10 @@ test("multi-day HTTP updates validate all inputs, roll back later failures, pres
     assert.equal(success.status, 200); assert.equal(success.body.data.updated, 2);
     assert.deepEqual(success.body.data.days.find(d => d.weekday === day1).schedule.ranges, [{ startTime: "10:00", endTime: "13:00" }]);
     assert.deepEqual((await state()).filter(d => ![day1, day2].includes(d.weekday)), baseline.filter(d => ![day1, day2].includes(d.weekday)));
-    assert.deepEqual((await fx.pool.query("SELECT * FROM schedule_days")).rows, snapshot); assert.equal(await auditCount(), 1);
+    const updatedDay = (await fx.pool.query("SELECT * FROM schedule_days WHERE therapist_id=$1 AND date=$2", [id, fx.tomorrow])).rows[0];
+    assert.deepEqual(updatedDay.ranges, [{ startTime: "10:00", endTime: "13:00" }]);
+    assert.deepEqual(updatedDay.manual_closed_ranges, snapshot[0].manual_closed_ranges);
+    assert.equal(await auditCount(), 1);
 
     // Middleware saw an administrator, but the transaction must recheck after waiting.
     const beforeRevoke = await state(), guard = await fx.pool.connect();

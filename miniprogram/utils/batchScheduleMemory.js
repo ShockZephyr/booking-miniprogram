@@ -1,4 +1,11 @@
 const steps = [10, 15, 30];
+const version = 2;
+const defaultRanges = () => [
+  { startTime: "09:00", endTime: "12:00" },
+  { startTime: "12:30", endTime: "15:00" },
+  { startTime: "15:30", endTime: "18:00" },
+  { startTime: "18:30", endTime: "20:30" }
+];
 let nextSaveOrder = 0;
 const completedSaves = new Map();
 
@@ -11,12 +18,25 @@ function storageKey() {
 function read(key, therapists, projects) {
   if (!key) return null;
   try {
-    const saved = wx.getStorageSync(key);
-    if (!saved || saved.version !== 1 || !Array.isArray(saved.therapistIds) || !Array.isArray(saved.weekdays)) return null;
+    let saved = wx.getStorageSync(key);
+    if (!saved || ![1, version].includes(saved.version) || !Array.isArray(saved.therapistIds) || !Array.isArray(saved.weekdays)) return null;
     const hasSchedule = Object.prototype.hasOwnProperty.call(saved, "schedule");
     const hasProjects = Object.prototype.hasOwnProperty.call(saved, "serviceItemIds");
     // Older partial saves cannot supply a complete form once both sections are always submitted.
     if (!hasSchedule || !hasProjects || !Array.isArray(saved.serviceItemIds)) return null;
+    // Keep the account key so existing selections survive this one-time reset.
+    // Persist the version on first read, not only after a schedule is saved.
+    if (saved.version === 1 && saved.schedule && typeof saved.schedule === "object") {
+      const { step, minDuration } = saved.schedule;
+      const compatible = steps.includes(step) && Number.isInteger(minDuration)
+        && minDuration > 0 && minDuration <= 120 && minDuration % step === 0;
+      saved = { ...saved, version, schedule: {
+        step: compatible ? step : 30, minDuration: compatible ? minDuration : 90, ranges: defaultRanges()
+      } };
+      try { wx.setStorageSync(key, saved); } catch (_) {
+        // Storage failure must not discard the administrator's other selections.
+      }
+    }
     const result = {
       therapistIds: [...new Set(saved.therapistIds.filter(id => therapists.some(t => t.id === id)))],
       selectedDays: [...new Set(saved.weekdays.filter(day => Number.isInteger(day) && day >= 1 && day <= 7))].sort((a, b) => a - b),
@@ -61,7 +81,7 @@ function write(save, body) {
   // Only successful requests reach here. Record their order even if local storage fails.
   completedSaves.set(key, order);
   try {
-    wx.setStorageSync(key, { version: 1, ...body });
+    wx.setStorageSync(key, { ...body, version });
     return true;
   } catch (_) {
     // The server save already succeeded; a full device cache is not a business failure.
@@ -69,4 +89,4 @@ function write(save, body) {
   }
 }
 
-module.exports = { storageKey, read, beginSave, write };
+module.exports = { storageKey, read, beginSave, write, defaultRanges };

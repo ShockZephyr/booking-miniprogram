@@ -28,6 +28,7 @@ async function harness(kind) {
   const write = (role) => (id) => { h.writes.push({ role, id }); return h.write(); };
   const listRead = () => { h.refreshes++; return h.list(); };
   const api = {
+    batchCheckIn: {},
     appointmentInbox: { acknowledge: async () => ({ acknowledged: [] }) },
     admin: { appointment: read, appointments: listRead, adminCheckInAppointment: write("admin") },
     therapistPortal: { appointment: read, appointments: listRead, checkIn: write("therapist") },

@@ -9,10 +9,11 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const event = value => ({ detail: { value } });
 const row = index => ({ currentTarget: { dataset: { index } } });
 const beforeFirst = () => ({ currentTarget: { dataset: { placement: "before" } } });
-const defaults = [{ startTime: "09:00", endTime: "12:00" }, { startTime: "14:00", endTime: "17:00" }, { startTime: "19:00", endTime: "21:00" }];
+const legacyRanges = [{ startTime: "09:00", endTime: "12:00" }, { startTime: "14:00", endTime: "17:00" }, { startTime: "19:00", endTime: "21:00" }];
+const defaults = [{ startTime: "09:00", endTime: "12:00" }, { startTime: "12:30", endTime: "15:00" }, { startTime: "15:30", endTime: "18:00" }, { startTime: "18:30", endTime: "20:30" }];
 const ranges = p => plain(p.data.ranges.map(({startTime,endTime}) => ({startTime,endTime})));
 const key = id => "batchSchedule:lastSaved:v1:" + id;
-const sample = () => ({ version: 1, therapistIds: ["t1", "t2"], weekdays: [1, 6], serviceItemIds: ["p1"],
+const sample = () => ({ version: 2, therapistIds: ["t1", "t2"], weekdays: [1, 6], serviceItemIds: ["p1"],
   schedule: { step: 15, minDuration: 105, ranges: [{ startTime: "09:00", endTime: "10:45" }] } });
 function deferred() {
   let resolve;
@@ -62,12 +63,13 @@ async function setup(options = {}) {
             if (h.saveFailure) throw new Error("保存失败");
             if (h.savePending) await h.savePending.promise;
             for (const day of days) h.rules[day.weekday] = { ...plain(day.schedule), serviceItemIds: plain(day.serviceItemIds) };
-            return { updated: days.length, days: plain(days) };
+            return { updated: days.length, days: plain(days), deferredDates: h.deferredDates || [] };
           },
           saveWeekly: async body => {
             h.writes.push(plain(body));
             if (h.saveFailure) throw new Error("保存失败");
             if (h.savePending) await h.savePending.promise;
+            return { deferredDates: h.deferredDates || [] };
           }
         };
         throw new Error("Unexpected dependency: " + name);
@@ -118,7 +120,41 @@ function choose(h) {
   p.setTime({ currentTarget: { dataset: { key: p.data.ranges[0].key, field: "endTime" } }, detail: { value: p.data.times.indexOf("10:45") } });
 }
 
-test("new batch forms bind 30 minutes and three default ranges and remember only a successful save for the same administrator", async () => {
+test("deferred daily parameters are reported without replacing saved weekly drafts or account prefill", async () => {
+  for (const singleId of ["", "t1"]) {
+    const h = await setup({ singleId }), p = h.page;
+    if (singleId) p.setMinimum(event("120")); else choose(h);
+    h.deferredDates = [{ therapistId: "t1", date: "2090-01-02", step: 30, minDuration: 90 }];
+    await save(h);
+    const notice = h.modals.at(-1);
+    assert.equal(notice.title, "排班已保存"); assert.equal(notice.showCancel, false);
+    assert.match(notice.content, /2090-01-02：精度30分钟，最短90分钟/);
+    assert.equal(p.data.saving, false);
+    if (singleId) {
+      assert.equal(p.data.minDuration, "120"); assert.equal(p.data.dirtyDays.length, 0);
+      assert.equal(h.storage.size, 0);
+    } else assert.deepEqual(h.storage.get(key("admin-a")), sample());
+  }
+});
+
+test("late parameter warnings never appear on a hidden page or after account switching", async () => {
+  for (const singleId of ["", "t1"]) for (const switchAccount of [false, true]) {
+    const h = await setup({ singleId }), p = h.page;
+    if (singleId) p.setMinimum(event("120")); else choose(h);
+    h.deferredDates = [{ therapistId: "t1", date: "2090-01-02", step: 30, minDuration: 90 }];
+    const pending = h.savePending = deferred(), task = save(h);
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(h.writes.length + h.weekWrites.length, 1);
+    p.onHide();
+    if (switchAccount) { h.user = { id: "admin-b", role: "admin" }; h.token = "other-session"; }
+    pending.resolve(); await task;
+    assert.equal(h.modals.length, 1, "only the original confirmation was shown");
+    if (!singleId && !switchAccount) assert.deepEqual(h.storage.get(key("admin-a")), sample());
+    else assert.equal(h.storage.size, 0);
+  }
+});
+
+test("new batch forms bind 30 minutes and four default ranges and remember only a successful save for the same administrator", async () => {
   const h = await setup(), p = h.page;
   assert.equal(p.data.step, 30); assert.equal(p.data.minDuration, "90");
   assert.deepEqual(ranges(p), defaults);
@@ -144,6 +180,65 @@ test("new batch forms bind 30 minutes and three default ranges and remember only
   assert.equal(cleared.page.data.step, 30);
 });
 
+test("legacy batch prefill resets ranges once per account while preserving selections and compatible parameters", async () => {
+  const old = { ...sample(), version: 1 };
+  const storage = new Map([[key("admin-a"), old], [key("admin-b"), { ...old, weekdays: [3], serviceItemIds: ["p2"] }]]);
+  const h = await setup({ storage }), p = h.page;
+  assert.deepEqual(ranges(p), defaults);
+  assert.equal(p.data.step, 15); assert.equal(p.data.minDuration, "105");
+  assert.deepEqual(plain(p.data.therapistIds), old.therapistIds);
+  assert.deepEqual(plain(p.data.selectedDays), old.weekdays);
+  assert.deepEqual(plain(p.data.projectIds), old.serviceItemIds);
+  assert.deepEqual(storage.get(key("admin-a")), { ...old, version: 2, schedule: { ...old.schedule, ranges: defaults } });
+  assert.equal(storage.get(key("admin-b")).version, 1, "another administrator is not migrated proactively");
+  assert.equal(h.writes.length, 0, "migration is local preference only");
+  p.setTime({ currentTarget: { dataset: { key: p.data.ranges[0].key, field: "startTime" } }, detail: { value: p.data.times.indexOf("08:00") } });
+  assert.deepEqual(storage.get(key("admin-a")).schedule.ranges, defaults, "unsaved edits are not remembered");
+  choose(h); await save(h); p.onUnload();
+  const again = await setup({ storage });
+  assert.deepEqual(ranges(again.page), sample().schedule.ranges, "a later successful save must not reset again");
+  const other = await setup({ storage, userId: "admin-b" });
+  assert.deepEqual(ranges(other.page), defaults);
+  assert.deepEqual(plain(other.page.data.selectedDays), [3]);
+  assert.deepEqual(plain(other.page.data.projectIds), ["p2"]);
+  assert.deepEqual(storage.get(key("admin-a")), sample());
+});
+
+test("legacy rest days reset once and incompatible parameters fall back without clearing other choices", async () => {
+  for (const schedule of [
+    { step: 30, minDuration: 180, ranges: legacyRanges },
+    { step: 20, minDuration: 100, ranges: [] },
+    { step: 15, minDuration: 90, ranges: [] }
+  ]) {
+    const old = { ...sample(), version: 1, schedule };
+    const h = await setup({ storage: new Map([[key("admin-a"), old]]) });
+    assert.deepEqual(ranges(h.page), defaults);
+    assert.equal(h.page.data.step, schedule.step === 15 ? 15 : 30);
+    assert.equal(h.page.data.minDuration, "90");
+    assert.deepEqual(plain(h.page.data.selectedDays), old.weekdays);
+    assert.deepEqual(plain(h.page.data.projectIds), old.serviceItemIds);
+    while (h.page.data.ranges.length) h.page.removeRange(row(0));
+    await save(h);
+    const again = await setup({ storage: h.storage });
+    assert.deepEqual(ranges(again.page), [], "new-version intentional rest days remain remembered");
+  }
+});
+
+test("legacy migration tolerates full storage and never touches a single-therapist weekly draft", async () => {
+  const old = { ...sample(), version: 1 };
+  const storage = new Map([[key("admin-a"), old]]);
+  const weekly = await setup({ storage, singleId: "t1" });
+  assert.deepEqual(ranges(weekly.page), weekly.rule.ranges);
+  assert.deepEqual(storage.get(key("admin-a")), old);
+  weekly.writeFailure = true;
+  const batch = await weekly.newPage();
+  assert.deepEqual(ranges(batch), defaults);
+  assert.deepEqual(plain(batch.data.projectIds), old.serviceItemIds);
+  assert.equal(batch.data.error, "");
+  assert.equal(weekly.writes.length, 0);
+  assert.deepEqual(storage.get(key("admin-a")), old);
+});
+
 test("cancelled, invalid, failed and unsaved batch changes cannot replace the last successful form", async () => {
   const storage = new Map([[key("admin-a"), sample()]]), h = await setup({ storage }), p = h.page;
   p.setStep(event("30"));
@@ -162,7 +257,7 @@ test("batch saves always include both sections and preserve intentional empty pr
   h.page.selectProjects(event([])); await save(h);
   const again = await setup({ storage: h.storage }), p = again.page;
   assert.equal(p.data.step, 15); assert.equal(p.data.ranges.length, 0); assert.equal(p.data.projectIds.length, 0);
-  assert.deepEqual(h.storage.get(key("admin-a")), { version: 1, therapistIds: ["t1", "t2"], weekdays: [1, 6], serviceItemIds: [], schedule: {step:15,minDuration:105,ranges:[]} });
+  assert.deepEqual(h.storage.get(key("admin-a")), { version: 2, therapistIds: ["t1", "t2"], weekdays: [1, 6], serviceItemIds: [], schedule: {step:15,minDuration:105,ranges:[]} });
   assert.match(h.modals[0].content, /全天休息.*清空可约项目/);
   p.addRange();
   await save(again);
@@ -399,12 +494,14 @@ test("a newer successful save with unavailable storage is not replaced by an old
 });
 
 test("plus inserts locally, sorts by start time and preserves picker identities without wrapping to earlier gaps", async () => {
-  const h = await setup(), p = h.page, before = plain(p.data.ranges);
+  const h = await setup(), p = h.page;
+  p.setData({ ranges: legacyRanges.map((r, i) => ({ ...r, key: "fixture-" + i })) });
+  const before = plain(p.data.ranges);
   p.addRange(row(0));
-  assert.deepEqual(ranges(p), [defaults[0], {startTime:"12:00",endTime:"13:30"}, defaults[1], defaults[2]]);
+  assert.deepEqual(ranges(p), [legacyRanges[0], {startTime:"12:00",endTime:"13:30"}, legacyRanges[1], legacyRanges[2]]);
   assert.deepEqual([p.data.ranges[0].key,p.data.ranges[2].key,p.data.ranges[3].key], before.map(r => r.key));
   assert.equal(new Set(p.data.ranges.map(r => r.key)).size,4);
-  p.removeRange(row(1)); assert.deepEqual(ranges(p), defaults);
+  p.removeRange(row(1)); assert.deepEqual(ranges(p), legacyRanges);
   p.addRange(row(2)); assert.deepEqual(ranges(p).at(-1), {startTime:"21:00",endTime:"22:30"});
   p.setData({ saving: true }); const blocked = ranges(p);
   p.addRange(row(0)); p.removeRange(row(0)); assert.deepEqual(ranges(p), blocked);
@@ -421,7 +518,7 @@ test("plus inserts locally, sorts by start time and preserves picker identities 
   p.removeRange(row(0)); assert.equal(p.data.ranges[0].key,"existing");
   p.setData({ ranges: before.slice().reverse() });
   p.addRange(row(1));
-  assert.deepEqual(ranges(p), [defaults[0],defaults[1],{startTime:"17:00",endTime:"18:30"},defaults[2]]);
+  assert.deepEqual(ranges(p), [legacyRanges[0],legacyRanges[1],{startTime:"17:00",endTime:"18:30"},legacyRanges[2]]);
   assert.deepEqual([p.data.ranges[0].key,p.data.ranges[1].key,p.data.ranges[3].key],before.map(r=>r.key));
   while (p.data.ranges.length) p.removeRange(row(0));
   p.addRange(); assert.deepEqual(ranges(p), [{startTime:"09:00",endTime:"12:00"}]);
@@ -450,19 +547,20 @@ test("a deleted last row's delayed events cannot turn a rest day back into a wor
 
 test("editing times reorders immediately and delayed row events still target the same range", async () => {
   const h = await setup(), p = h.page;
+  p.setData({ ranges: legacyRanges.map((r, i) => ({ ...r, key: "fixture-" + i })) });
   const target = {index:2, key:p.data.ranges[2].key};
   const edit = (field, time, dataset = target) => p.setTime({currentTarget:{dataset:{...dataset,field}},detail:{value:p.data.times.indexOf(time)}});
   edit("startTime", "06:30");
   assert.deepEqual(ranges(p).map(r=>r.startTime), ["06:30","09:00","14:00"]);
   assert.equal(p.data.ranges[0].key,target.key);
   edit("endTime", "08:30");
-  assert.deepEqual(ranges(p), [{startTime:"06:30",endTime:"08:30"},defaults[0],defaults[1]]);
+  assert.deepEqual(ranges(p), [{startTime:"06:30",endTime:"08:30"},legacyRanges[0],legacyRanges[1]]);
   for (const item of p.data.ranges) {
     assert.equal(p.data.times[item.startIndex],item.startTime);
     assert.equal(p.data.times[item.endIndex],item.endTime);
   }
   p.addRange({currentTarget:{dataset:target}});
-  assert.deepEqual(ranges(p), [{startTime:"06:30",endTime:"08:30"},{startTime:"08:30",endTime:"09:00"},defaults[0],defaults[1]]);
+  assert.deepEqual(ranges(p), [{startTime:"06:30",endTime:"08:30"},{startTime:"08:30",endTime:"09:00"},legacyRanges[0],legacyRanges[1]]);
   p.removeRange({currentTarget:{dataset:target}});
   assert.ok(p.data.ranges.every(r=>r.key!==target.key));
   const kept = ranges(p);
@@ -872,7 +970,7 @@ test("confirmation and request completion reject delayed input while an already 
   pending.resolve(); await saved;
   assert.deepEqual(plain(p.data), oldPage); assert.deepEqual(plain(next.data), nextDraft);
   assert.equal(h.toasts.length, messages);
-  assert.deepEqual(h.storage.get(key("admin-a")), { version: 1, ...payload });
+  assert.deepEqual(h.storage.get(key("admin-a")), { version: 2, ...payload });
 });
 
 test("saving completion and precision changes invalidate obsolete control events but preserve sorted row identity", async () => {
@@ -907,7 +1005,7 @@ test("an already submitted save can finish while hidden and remains editable on 
     p.onHide(); finish(); await saving;
     assert.equal(p.data.saving, false); assert.equal(h.toasts.length, messages);
     assert.equal(h.storage.has(key("admin-a")), !fail);
-    if (!fail) assert.deepEqual(h.storage.get(key("admin-a")), { version: 1, ...submitted });
+    if (!fail) assert.deepEqual(h.storage.get(key("admin-a")), { version: 2, ...submitted });
     await p.onShow(); const returned = plain(p.data); await replay(p, stale); assert.deepEqual(plain(p.data), returned);
     p.setMinimum(event("120")); assert.equal(p.data.minDuration, "120");
   }

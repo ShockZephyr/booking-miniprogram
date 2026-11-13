@@ -55,8 +55,10 @@
 | 改动范围 | 测试入口 |
 | --- | --- |
 | 创建／修改／取消／签到 | `node --test tests/appointmentService.test.js tests/appointmentInput.test.js tests/bookingProjects.test.js` |
+| 过期自动签到 | `node --test tests/autoCheckIn.test.js`；`autoCheckInIntegration.test.js` 用下述隔离 PostgreSQL 验证上海日期边界、每日去重、取消／人工签到竞争、回滚和历史重叠。迁移026执行记录须与签到及业务日志同事务，任务在身份锁后读数据库时间；不得用重启或删除运行记录绕过每日去重 |
+| 工作人员一键签到 | `node --test tests/batchCheckInFrontend.test.js`；`batchCheckInIntegration.test.js` 在隔离 PostgreSQL 验证全分页筛选、角色范围、签到开放时刻、旧确认、并发与整批回滚。预览与提交均复核实时身份；确认版本不替代鉴权，新前端需配套发布对应批量接口 |
 | 多项目预约、卡片与详情 | `node --test tests/multiProjectAppointments.test.js tests/dayBookingForm.test.js tests/appointmentNavigation.test.js`；`multiProjectIntegration.test.js` 按下文使用隔离 PostgreSQL 验证迁移、关联项目保护、历史、筛选与事务回滚。项目集合在 `appointment_service_items`，旧单项目列只作兼容，查询和删除保护不得只检查首项目 |
-| 排期、批量、配置保护 | `node --test tests/scheduleService.test.js tests/businessRegression.test.js` |
+| 排期、批量、配置保护 | `node --test tests/scheduleService.test.js tests/liveSchedule.test.js tests/businessRegression.test.js`；`liveScheduleIntegration.test.js` 使用下述隔离 PostgreSQL，验证立即生效、取消保护、关闭区间、参数兼容和并发 |
 | 登录、身份、白名单、芳疗师范围 | `node --test tests/authService.test.js tests/therapistIdentity.test.js tests/therapistPortalService.test.js tests/whitelistService.test.js` |
 | 私有审核码登录、入口开关与环境选择 | `node --test tests/reviewLogin.test.js tests/reviewLoginFrontend.test.js tests/productionHardening.test.js`；真实 HTTP／事务撤销另跑 `reviewLoginIntegration.test.js`，必须使用下述隔离测试库。配置和关闭步骤见部署说明，生产 mock 始终关闭 |
 | 回收站、图片 | `node --test tests/recycleBin.test.js tests/imageUpload.test.js`，生命周期／引用关系另跑数据库集成 |
@@ -100,7 +102,7 @@ TEST_DATABASE_URL='<专用测试数据库连接串>' RUN_DB_TESTS=1 npm --prefix
 1. **身份不能被手机号或前端参数提升。** 核对管理员优先、芳疗师独立绑定、实时会员资格和本人数据范围；OpenID 冲突按 PRODUCT.md 处理并使旧会话失效。旧账号请求不得覆盖新账号页面或清除新会话。
    私有审核码只登录数据库标记的固定测试身份，不能复用或换绑真实账号；开关、截止时间和凭据版本须在鉴权及事务身份锁后检查。前端入口隐藏不等于撤销权限，审核码不得进入日志或小程序包。`config/development.js` 的本机调试开关上传前关闭，不能因 `develop` 自动连接本机。
    测试令牌须使用独立签名域，旧版普通 JWT 校验不能接受它；白名单测试会员的标识只读，恢复仅由管理员明确操作，不能放松真实手机号校验或登录时自动补回资格。
-2. **排期与预约写入必须防止竞态。** 按实时身份锁、排序的芳疗师、预约行的顺序校验并写入。同一芳疗师及同一顾客的有效预约有半开区间排他约束。首次成功预约及有效单日调整在同一事务固定日期，用周模板覆盖多个组合不能覆盖固定日期。
+2. **排期与预约写入必须防止竞态。** 按实时身份锁、排序的芳疗师、预约行的顺序校验并写入。同一芳疗师及同一顾客的有效预约有半开区间排他约束。首次成功预约及有效单日调整在同一事务保存日期配置。周模板修改立即更新对应今天／未来日期的基础范围，实际排班动态合并未结束有效预约；不得把保护占用永久存成开放时间。手动关闭区间独立保存；不兼容参数暂沿用旧值，详见 PRODUCT.md。
 3. **区分预约时间与排班配置。** 签到从预约实际开始前一小时开放。修改保持日期、芳疗师、预约 ID 及签到时间，锁后复核时钟和版本。已开始固定起点，结束即停止修改。日排班只允许开关空闲未结束格，端点能作结束不代表能作开始。资料停用依据实际未结束有效预约。
 4. **恢复不能破坏关联与历史。** 项目／芳疗师追加恢复、重新校验账号绑定；保留可恢复标签和回收站图片，显式标签编辑校验版本且不截断数量。永久删除仍保留预约快照和历史可读性，不能级联抹掉业务记录。
 5. **“全部”、停用与分页必须一致。** 不选或完整全选均不加该分类条件；“已停用”用独立条件与所选在用项取并集。历史筛选在 SQL 分页前完成；抽屉草稿、账号切换和旧请求不能制造隐形筛选或泄漏其他人员资料。

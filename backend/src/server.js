@@ -4,6 +4,7 @@ const env = require("./config/env");
 const db = require("./config/db");
 const { logger } = require("./config/logger");
 const noShowService = require("./services/noShowService");
+const autoCheckInService = require("./services/autoCheckInService");
 const alertService = require("./services/alertService");
 const { rotateLogsNow } = require("./services/logRotationService");
 const imageCleanupService = require("./services/imageCleanupService");
@@ -33,6 +34,17 @@ function cleanRecycleBin() {
   });
 }
 
+let autoCheckInRunning = false;
+async function checkInExpired() {
+  if (autoCheckInRunning) return;
+  autoCheckInRunning = true;
+  try { await autoCheckInService.checkInExpired(); }
+  catch (error) { logger.error({ error: error.message, stack: error.stack }, "expired_auto_check_in_failed"); }
+  finally { autoCheckInRunning = false; }
+}
+
+cron.schedule(autoCheckInService.CRON, checkInExpired, { timezone: env.timezone });
+
 const app = createApp();
 const server = app.listen(env.port, () => {
   logger.info({ port: env.port, nodeEnv: env.nodeEnv }, "server_started");
@@ -40,6 +52,7 @@ const server = app.listen(env.port, () => {
   // so records still expire if the server was offline at the scheduled time.
   cleanRecycleBin();
   cleanLogs();
+  checkInExpired();
 });
 
 cron.schedule(env.noShowCron, () => {

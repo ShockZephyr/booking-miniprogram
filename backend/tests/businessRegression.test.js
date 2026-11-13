@@ -67,6 +67,7 @@ test("appointment background jobs are registered in Shanghai time", () => {
     },
     "./config/db": {}, "./config/logger": { logger: { info: noop, error: noop } },
     "./services/noShowService": {}, "./services/alertService": {}, "./services/imageCleanupService": {},
+    "./services/autoCheckInService": { CRON: "5 0 * * *", checkInExpired: async () => ({}) },
     "./services/recycleBinCleanupService": { purgeExpired: async () => { recycleCleanupRuns += 1; } },
     "./services/logRotationService": { rotateLogsNow: noop },
     "./services/logRetentionService": { cleanupLogs: async () => ({}) }
@@ -74,8 +75,8 @@ test("appointment background jobs are registered in Shanghai time", () => {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/server.js"), "utf8"), {
     module, require: (name) => deps[name], process: { on: noop }
   });
-  assert.equal(jobs.length, 6);
-  for (const expression of ["*/5 * * * *", "17 3 * * *", "7 3 * * *", "45 * * * *", "*/10 * * * *"]) {
+  assert.equal(jobs.length, 7);
+  for (const expression of ["*/5 * * * *", "17 3 * * *", "7 3 * * *", "45 * * * *", "*/10 * * * *", "5 0 * * *"]) {
     assert.equal(jobs.find((job) => job[0] === expression)[2].timezone, "Asia/Shanghai");
   }
   assert.equal(recycleCleanupRuns, 1);
